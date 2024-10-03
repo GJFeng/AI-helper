@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{highlightcssUri}}">
+    <link rel="stylesheet" href="{{jqueryuicssUri}}">
+    <link rel="stylesheet" href="{{indexcssUri}}">
+
+    <script src="{{tailwindUri}}"></script>
+    <script src="{{scriptUri}}"></script>
+
+    <!-- scripts and csses for editing -->
+    <script class="editing" src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script class="editing" src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
+    <script class="editing" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script class="editing" src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+
+    <link rel="stylesheet" class="editing" href="https://unpkg.com/tailwindcss@2.1.2/dist/tailwind.min.css">
+    <link rel="stylesheet" class="editing" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+    <link rel="stylesheet" class="editing" href="../styles/highlight-vscode.min.css">
+    <link rel="stylesheet" class="editing" href="../styles/vscode-simulation.css">
+    <link rel="stylesheet" class="editing" href="../styles/index.css">
+
+    <style>
+    </style>
+</head>
+
+<body class="p-0">
+    <div class="conversation flex flex-col h-screen">
+        <div id="messages-container" class="messages-container p-0 flex-1 overflow-y-auto">
+            <div id="response_templates" class="text-sm scroll">
+                <div id="toolbar-message" class="toolbar flex items-center">
+                    <button title="Markdown"
+                        class="toolbar-btn toolbar-btn-message markdown-btn text-white font-medium transition-colors">
+                        <span class="markdown-icon"></span>
+                    </button>
+                    <button title="Copy"
+                        class="toolbar-btn toolbar-btn-message copy-btn text-white font-medium transition-colors">
+                        <span class="copy-icon"></span>
+                    </button>
+                    <button title="Delete"
+                        class="toolbar-btn toolbar-btn-message delete-btn text-white font-medium transition-colors">
+                        <span class="delete-icon"></span>
+                    </button>
+                </div>
+                <div id="toolbar-code" class="toolbar flex items-center">
+                    <button title="Edit"
+                        class="editing toolbar-btn toolbar-btn-code edit-btn text-white font-medium transition-colors">
+                        <span class="edit-icon"></span>
+                    </button>
+                    <button title="Copy"
+                        class="toolbar-btn toolbar-btn-code copy-btn text-white font-medium transition-colors">
+                        <span class="copy-icon"></span>
+                    </button>
+                    <button title="Insert"
+                        class="toolbar-btn toolbar-btn-code insert-btn text-white font-medium transition-colors">
+                        <span class="insert-icon"></span>
+                    </button>
+                </div>
+                <div class="response m-1 p-1 bg-slate-800">
+                    <div class="toolbar flex items-center">
+                        <button
+                            class="toolbar-btn toolbar-btn-message toggle-btn text-white font-medium transition-colors">
+                            <span class="markdown-icon"></span>
+                        </button>
+                        <button
+                            class="toolbar-btn toolbar-btn-message delete-btn text-white font-medium transition-colors">
+                            <span class="delete-icon"></span>
+                        </button>
+                    </div>
+                    <p>The code snippet provided is iterating over the <code>this.contours</code> object using a <code>for</code> loop,
+                        calculating the area of each contour using <code>cv.contourArea</code>, and checking if the ratio of the area to
+                        <code>srcArea</code> is greater than or equal to <code>areaRatioThreshold</code>. If it is, it pushes an object
+                        containing the contour and its area to the <code>contoursArray</code>.
+                    </p>
+                    <p>Here's a refactored version of the code:</p>
+                    <div class="toolbar flex items-center">
+                        <button title="Edit" class="toolbar-btn toolbar-btn-code edit-btn text-white font-medium transition-colors">
+                            <span class="edit-icon"></span>
+                        </button>
+                        <button title="Copy" class="toolbar-btn toolbar-btn-code opy-btn text-white font-medium transition-colors">
+                            <span class="copy-icon"></span>
+                        </button>
+                        <button title="Insert" class="toolbar-btn toolbar-btn-code insert-btn text-white font-medium transition-colors">
+                            <span class="insert-icon"></span>
+                        </button>
+                    </div>
+                    <pre><code class="hljs language-javascript">      const contoursArray = <span class="hljs-built_in">Array</span>.from({ <span class="hljs-attr">length</span>: this.contours.size() })
+                                            .<span class="hljs-built_in">map</span>(<span class="hljs-function">(<span class="hljs-params">_, i</span>) =&gt;</span> this.contours.get(i))
+                                            .<span class="hljs-built_in">map</span>(<span class="hljs-function">(<span class="hljs-params">contour</span>) =&gt;</span> ({
+                                              contour,
+                                              <span class="hljs-attr">area</span>: cv.contourArea(contour),
+                                            }))
+                                            .<span class="hljs-built_in">filter</span>(<span class="hljs-function">(<span class="hljs-params">{ <span class="hljs-built_in">area</span> }</span>) =&gt;</span> <span class="hljs-built_in">area</span> / srcArea &gt;= areaRatioThreshold);
+                                    </code></pre>
+                    <div class="timestamp text-xs text-gray-500">3/21/2023, 6:40:26 PM</div>
+                </div>
+            </div>            
+            <div id="responses" class="text-sm scroll">
+                <div class="response">
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center">
+                <div class="mx-1 text-stone-300 text-sm">Context</div>
+                <select id="context-select" class="bg-stone-700 text-sm">
+                    <option value="none" selected>None</option>
+                    <option value="selection">Selection</option>
+                    <option value="whole_file">Whole File</option>
+                    <option value="all_opened_files">All Opened Files</option>
+                </select>
+            </div>
+            <div class="stop-container flex items-center">
+                <div id="working-state" class="working-label mr-4 text-stone-300 text-xs">ChatGPT AI</div>
+                <button id="stop-button" class="flex p-1 cursor-not-allowed rounded-md" title="Stop">
+                    <span class="stop-icon"></span>
+                </button>     
+            </div>
+        </div>
+        <div class="prompt-container relative">
+            <textarea class="h-24 w-full text-white bg-stone-700 p-2 text-sm resize-virtical"
+                placeholder="Ask ChatGPT something...&#10;Press Ctrl-Enter to send." id="prompt-input"></textarea>
+            <div class="flex-container flex items-center py-0">
+                <div id="conversation-id" class="w-full text-gray-500 p-0 text-xs text-right" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ">Conversation ID: /</div>
+                <button id="reset-button" class="flex mx-2 p-0 text-white font-semibold text-sm"
+                    title="Reset conversation">
+                    <span class="reset-icon"></span>
+                </button>
+            </div>
+            <button id="send-request" class="flex absolute transform translate-x-1/2 translate-y-1/2" style="bottom: 40px; right:20px;"
+                title="Send">
+                <span class="send-icon"></span>
+            </button>
+        </div>
+    </div>
+</body>
+
+</html>

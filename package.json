@@ -1,0 +1,108 @@
+{
+  "name": "ai-helper",
+  "displayName": "ai-helper",
+  "description": "",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:ai-helper.chatView"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "ai-helper.openCustomPage",
+        "title": "Open Custom Page"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "chatGPT",
+          "title": "Package Explorer",
+          "icon": "./resources/talkGPT-d.svg"
+        }
+      ]
+    },
+    "views": {
+      "chatGPT": [
+        {
+          "type": "webview",
+          "id": "ai-helper.chatView",
+          "name": "Custom Page",
+          "contextualTitle": "Package Explorer"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ChatGPT AI Helper",
+      "properties": {
+        "ai-helper.model": {
+          "order": 3,
+          "type": "string",
+          "default": "gpt-4o-mini",
+          "markdownDescription": "选择GPT模型",
+          "enum": [
+            "gpt-3.5-turbo",
+            "gpt-4o",
+            "gpt-4o-mini"
+          ],
+          "enumItemLabels": [
+            "gpt-3.5-turbo",
+            "gpt-4o",
+            "gpt-4o-mini"
+          ]
+        },
+        "ai-helper.apiKey": {
+          "markdownDescription": "OpenAI API key from [https://platform.openai.com/account/api-keys](https://platform.openai.com/account/api-keys)",
+          "type": "string",
+          "order": 1
+        },
+        "ai-helper.proxy": {
+          "markdownDescription": "设置自定义代理服务器，[https://api.openai.com](https://api.openai.com)请确保您的服务器正常可用",
+          "type": "string",
+          "order": 2
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/jquery": "^3.5.16",
+    "@types/jqueryui": "^1.12.16",
+    "@types/mocha": "^10.0.8",
+    "@types/node": "20.x",
+    "@types/vscode": "^1.93.0",
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.11.1",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.6.2",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "highlight.js": "^11.10.0",
+    "jquery": "^3.7.1",
+    "jquery-ui": "^1.14.0",
+    "marked": "^14.1.2"
+  }
+}

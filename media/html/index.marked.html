@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{highlightcssUri}}">
+    <link rel="stylesheet" href="{{jqueryuicssUri}}">
+    <link rel="stylesheet" href="{{indexcssUri}}">
+
+    <script src="{{tailwindUri}}"></script>
+    <script src="{{scriptUri}}"></script>
+
+    <!-- scripts and csses for editing -->
+    <script class="editing" src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script class="editing"
+        src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
+    <script class="editing" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script class="editing" src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+
+    <link rel="stylesheet" class="editing" href="https://unpkg.com/tailwindcss@2.1.2/dist/tailwind.min.css">
+    <link rel="stylesheet" class="editing" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+    <link rel="stylesheet" class="editing" href="../styles/highlight-vscode.min.css">
+    <link rel="stylesheet" class="editing" href="../styles/vscode-simulation.css">
+    <link rel="stylesheet" class="editing" href="../styles/index.css">
+    <link rel="stylesheet" class="editing" href="../styles/base.css">
+</head>
+
+<body codeverse-theme='dark'>
+    <div id="root">
+        <div class="chat-page">
+            <div class="chat-help-page">
+                <div>
+                    <div class="user">嗨，有什么可以帮你的</div>
+                    <div class="ask">你的 AI 编程助手，使用快捷键<span class="label-1">⌘</span> <span
+                            class="label-3">U</span>&nbsp;&nbsp;来与我对话吧！</div>
+                    <div class="instruction">
+                        <div class="label"><img class="icon" src="{{imgUri}}/dark-icon.svg"><span
+                                class="command">智能代码生成器</span></div>
+                        <div class="text">轻松将你的想法转化为高质量代码</div>
+                    </div>
+                    <div class="instruction">
+                        <div class="label"><img class="icon" src="{{imgUri}}/dark-icon.svg"><span
+                                class="command">代码解析专家</span></div>
+                        <div class="text">/explain 深入剖析函数功能，助你快速理解代码</div>
+                    </div>
+                    <div class="instruction">
+                        <div class="label"><img class="icon" src="{{imgUri}}/dark-icon.svg"><span
+                                class="command">智能注释助手</span></div>
+                        <div class="text">/docstring 一键生成清晰、专业的代码注释</div>
+                    </div>
+                    <div class="instruction">
+                        <div class="label"><img class="icon" src="{{imgUri}}/dark-icon.svg"><span
+                                class="command">生成单测</span></div>
+                        <div class="text">/test 为这段选中的函数生成单测</div>
+                    </div>
+                    <!-- <div class="type">输入 <span class="label">'/help'</span> 查看更多使用说明</div> -->
+                </div>
+            </div>
+            <div>
+                <div class="text-right mb-2">
+                    <span class="text-gray-300">模型：</span>
+                    <span class="from-purple-500 to-green-400 rounded-xs px-1 h-auto cursor-help vip-logo">
+                        <span class="text-gray-800 text-xs leading-none" id="model-version"></span>
+                    </span>
+                </div>
+            </div>
+            <div>
+                <div class="inputView-container">
+                    <div class="inputView-color-bg"></div>
+                </div>
+
+                <div class="chat-input">
+                    <div class="container">
+                        <div class="input" contenteditable="true">
+                            <textarea style="outline: none;" maxlength="5000"
+                                class="rounded-md outline-none border-none bg-transparent w-full text-white p-1 min-h-[100px] h-auto"
+                                placeholder="输入 '/'  使用命令，或直接提问。让AI成为你的得力助手！" id="prompt-input"
+                                class="text-placeholder"></textarea>
+                        </div>
+                        <div class="instructions">
+                            <div class="command" id="command">
+                                <div class="icon"><svg width="13" height="13" viewBox="0 0 12 12"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M10.0454 1.94615C10.2839 2.17993 10.2839 2.58282 10.0553 2.81162L9.02161 3.85617C8.78803 4.09493 8.38548 4.09493 8.15688 3.86612C7.91833 3.62737 7.91833 3.22944 8.14693 2.99566L9.18064 1.95609C9.41422 1.72231 9.81677 1.71236 10.0454 1.94615ZM2.14348 11.0138C1.84534 11.3172 1.3384 11.3123 1.0452 11.0138C0.751923 10.7104 0.751923 10.218 1.0452 9.91455L5.76146 5.15937C6.05964 4.86093 6.56656 4.86093 6.85978 5.15937C7.15796 5.46279 7.15299 5.95522 6.85978 6.25366L2.14348 11.0138ZM10.0653 10.0389C10.2939 9.81007 10.2889 9.40718 10.0553 9.17339L9.01664 8.13884C8.78306 7.91 8.38051 7.91495 8.14693 8.14874C7.91833 8.38253 7.9233 8.78047 8.15688 9.01426L9.19555 10.0538C9.42913 10.2827 9.83168 10.2776 10.0653 10.0389ZM3.85804 2.99566C4.08668 3.22944 4.08668 3.62737 3.84808 3.86612C3.61951 4.09493 3.21697 4.09493 2.98338 3.85617L1.94472 2.8166C1.71113 2.5878 1.71607 2.1849 1.9546 1.94615C2.18325 1.71236 2.58579 1.72231 2.81937 1.95609L3.85804 2.99566ZM6.00001 0.25C5.66703 0.25 5.38873 0.53352 5.38873 0.86678V2.38386C5.38873 2.71712 5.66703 2.99566 6.00001 2.99566C6.33298 2.99566 6.61626 2.71712 6.61626 2.38386V0.86678C6.61626 0.53352 6.33298 0.25 6.00001 0.25ZM11.75 5.99998C11.75 5.66672 11.4717 5.38818 11.1387 5.38818H9.62295C9.28998 5.38818 9.0067 5.66672 9.0067 5.99998C9.0067 6.33325 9.28998 6.61179 9.62295 6.61179H11.1387C11.4717 6.61179 11.75 6.33325 11.75 5.99998ZM0.25 5.99998C0.25 6.33325 0.533313 6.61179 0.866281 6.61179H2.37706C2.71003 6.61179 2.99334 6.33325 2.99334 5.99998C2.99334 5.66672 2.71003 5.38818 2.37706 5.38818H0.866281C0.533313 5.38818 0.25 5.66672 0.25 5.99998ZM6.00001 9.00429C5.66703 9.00429 5.38873 9.28784 5.38873 9.6211V11.1332C5.38873 11.4664 5.66703 11.75 6.00001 11.75C6.33298 11.75 6.61626 11.4664 6.61626 11.1332V9.6211C6.61626 9.28784 6.33298 9.00429 6.00001 9.00429Z">
+                                        </path>
+                                    </svg></div>
+                                <div class="tips">输入 '/' 选择指令</div>
+                            </div>
+                            <div class="send" id="send">
+                                <div class="icon"><svg width="16" height="16" viewBox="0 0 16 16"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M15.3925 1.74981L13.3479 12.7724C13.3311 12.8632 13.2946 12.9492 13.241 13.0244C13.1875 13.0997 13.1181 13.1623 13.0378 13.2079C12.9576 13.2535 12.8683 13.2811 12.7762 13.2886C12.6842 13.2961 12.5916 13.2835 12.505 13.2515L7.38202 11.3647L10.3833 6.29788L5.79779 10.7811L1.41038 9.16375C1.29645 9.12071 1.19732 9.0458 1.1248 8.94796C1.05228 8.85013 1.00944 8.73349 1.00139 8.61197C0.993338 8.49046 1.02042 8.36919 1.0794 8.26264C1.13837 8.15609 1.22676 8.06876 1.33401 8.01107L14.4732 1.07332C14.5786 1.01771 14.6975 0.992902 14.8163 1.00175C14.9351 1.0106 15.049 1.05275 15.1449 1.12336C15.2409 1.19397 15.315 1.29019 15.3588 1.40099C15.4026 1.51178 15.4142 1.63268 15.3925 1.74981ZM7.11114 12.8718L7.15725 14.6376C7.15922 14.7106 7.18261 14.7814 7.22451 14.8412C7.26642 14.9011 7.32499 14.9472 7.39293 14.974C7.46088 15.0008 7.5352 15.0071 7.60666 14.9919C7.67812 14.9768 7.74355 14.941 7.79483 14.889L9.18093 13.4835C9.22695 13.4367 9.25981 13.3786 9.27618 13.3151C9.29255 13.2516 9.29186 13.1849 9.27417 13.1217C9.25647 13.0585 9.22241 13.0012 9.17542 12.9554C9.12844 12.9096 9.0702 12.877 9.00659 12.861L7.57438 12.5008C7.51864 12.4869 7.46046 12.4861 7.40436 12.4984C7.34826 12.5107 7.29575 12.5357 7.25092 12.5716C7.2061 12.6075 7.17016 12.6533 7.14592 12.7054C7.12167 12.7574 7.10977 12.8144 7.11114 12.8718Z">
+                                        </path>
+                                    </svg></div>
+                                <div class="tips">发送 ⏎</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <ul id="suggestions" class="suggestions" hidden=""></ul>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
