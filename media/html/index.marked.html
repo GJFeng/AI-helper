@@ -30,7 +30,7 @@
 <body codeverse-theme='dark'>
     <div id="root">
         <div class="chat-page">
-            <div class="chat-help-page">
+            <div class="chat-help-page" id="intro">
                 <div>
                     <div class="user">嗨，有什么可以帮你的</div>
                     <div class="ask">你的 AI 编程助手，使用快捷键<span class="label-1">⌘</span> <span
@@ -58,6 +58,7 @@
                     <!-- <div class="type">输入 <span class="label">'/help'</span> 查看更多使用说明</div> -->
                 </div>
             </div>
+            <div id="responses"></div>
             <div>
                 <div class="text-right mb-2">
                     <span class="text-gray-300">模型：</span>
@@ -73,7 +74,7 @@
 
                 <div class="chat-input">
                     <div class="container">
-                        <div class="input" contenteditable="true">
+                        <div class="input">
                             <textarea style="outline: none;" maxlength="5000"
                                 class="rounded-md outline-none border-none bg-transparent w-full text-white p-1 min-h-[100px] h-auto"
                                 placeholder="输入 '/'  使用命令，或直接提问。让AI成为你的得力助手！" id="prompt-input"
@@ -89,7 +90,7 @@
                                     </svg></div>
                                 <div class="tips">输入 '/' 选择指令</div>
                             </div>
-                            <div class="send" id="send">
+                            <div class="send" id="send-request">
                                 <div class="icon"><svg width="16" height="16" viewBox="0 0 16 16"
                                         xmlns="http://www.w3.org/2000/svg">
                                         <path

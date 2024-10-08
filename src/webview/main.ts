@@ -3,108 +3,347 @@ import * as marked from 'marked';
 import hljs from 'highlight.js';
 import $ from 'jquery';
 import 'jquery-ui/ui/widgets/autocomplete';
-
+import { COMMANDS_LIST, CommandType } from '../command';
+import showdown from 'showdown';
 declare const acquireVsCodeApi: () => any;
 
+const _USERNAME = '🤖 CREATORS';
 interface ChatResponse {
-  id: string;
+  /** open ai 会话流 id */
+  id?: string;
+  /** 会话唯一键， */
+  uuid?: number | string;
   text: string;
   parentMessageId?: string;
   conversationId?: string;
 }
 
 interface ChatRequest {
+  /** open ai 会话流 id */
   id?: string;
+  /** 会话唯一键， */
+  uuid: number | string;
+  /* 命令 */
+  command?: CommandType;
   text: string;
   parentMessageId?: string;
   conversationId?: string;
 }
 
+type WorkingState = 'idle' | 'asking';
+
 interface ChatEvent {
-  text: string;
+  /* 对话内容 */
+  text: any;
+  /* 命令 */
+  command?: CommandType;
+  /** open ai 会话流 id */
+  id?: string;
+  /** 会话唯一键， */
+  uuid?: number | string;
 }
-
-// This script will be run within the webview itself
-// It cannot access the main VS Code APIs directly.
 (function () {
-  const vscode = acquireVsCodeApi();
+  // const vscode = acquireVsCodeApi();
   // const config = vscode.workspace.getConfiguration('chatgpt-ai');
-  console.log('config', vscode.getState());
-  const _commands = [
-    {
-      label: '/ask ',
-      desc: '提出关于您所选择代码段的任何问题',
-    },
-    {
-      label: '/explain ',
-      desc: '解释您所选代码的工作原理',
-    },
-    {
-      label: '/docstring ',
-      desc: '为所选代码生成自动化文档字符串',
-    },
-    {
-      label: '/improve ',
-      desc: '提供改进所选代码的建议',
-    },
-    {
-      label: '/test ',
-      desc: '为您的代码创建单元测试',
-    },
-    {
-      label: '/image ',
-      desc: '使用DALLE-3生成图片, 直接输入描述 (如: /image 长鼻子大象)',
-    },
-    {
-      label: '/bing ',
-      desc: '使用GPT-4的联网能力进行增强搜索和信息检索',
-    },
-  ];
+  /** 指令 */
+  const _commands = Object.values(CommandType);
 
-  let response = '';
-  let workingState = 'idle';
-  let cachedPrompts: string[] = [];
+  let lastResponse: ChatResponse | null = null;
 
-  // Handle messages sent from the extension to the webview
+  let workingState: WorkingState = 'idle';
+
   window.addEventListener('message', (event: MessageEvent) => {
     const { type, value } = event.data;
+    const { uuid, id, text } = value;
     switch (type) {
-      case 'addResponse':
-        updateResponse(value);
+      case 'addRequest': {
+        // 提问  - 打开新的消息页面并创建相应的标签
+        renderRequest(value);
         break;
-      case 'addRequest':
-        updateRequest(value);
-        break;
+      }
       case 'addEvent':
+        // 更新消息 - 异常
         updateEvent(value);
         break;
-      case 'clearResponses':
-        clearResponses();
+      case 'addResponse': {
+        // 回答 - 显示消息内容
+        // document.getElementById('intro').style.display = 'none'; // 隐藏id为intro的div
+        // setResponse(value);
+        renderResponse(value);
         break;
-      case 'setTask':
-        $('#prompt-input').val(value);
+      }
+      case 'setResponse_image': {
+        setResponse_image(id);
         break;
+      }
+      case 'clearResponse': {
+        // response = '';
+        break;
+      }
+      case 'clear': {
+        // response = '';
+        clearChatHistory();
+        $('#intro').show(); // 隐藏id为intro的div
+        break;
+      }
+
+      case 'scrollToBottomOfWindow': {
+        scrollToBottomOfWindow();
+      }
+
       case 'setWorkingState':
+        // 设置工作状态
         setWorkingState(value);
         break;
       case 'setConversationId':
+        // 切换 窗口 id
         updateConversationId(value);
         break;
-      case 'promptsLoaded':
-        cachedPrompts = value;
-        break;
-      case 'setContextSelection':
-        $('#context-select').val(value);
-        break;
-      case 'setModel':
+
+      case 'setModelVersion':
         /* 设置gpt model */
         $('#model-version').html(value);
         break;
     }
   });
 
-  function updateConversationId(id: string): void {
-    $('#conversation-id').text(`Conversation ID: ${id || '/'}`);
+  /** 渲染问题  */
+  function renderRequest(request: ChatRequest) {
+    const { uuid, command, text } = request;
+
+    // 提问  - 打开新的消息页面并创建相应的标签
+    $('#intro').hide(); // 隐藏id为intro的div
+    $('#prompt-input').val('');
+    const tailwind_class = 'flex w-full bg-[#1E1E1E] rounded-xl shadow-md';
+
+    // 创建 提问节点
+    const askDiv = $(`<div>`).addClass(`${tailwind_class} justify-end chat__user-wrapper`);
+    // 创建 回答节点
+    const responseDiv = $(`<div>`).addClass(`${tailwind_class} justify-start chat__system-wrapper`);
+
+    // 渲染 问题 根节点
+    const parentDiv = $('<div>').attr('data-id', uuid);
+    // 添加 提问与回答节点
+    parentDiv.append(askDiv).append(responseDiv);
+
+    // 渲染 用户 头像名称
+    const contentDiv = $('<div>')
+      .addClass('bg-[#1E1E1E] p-4 w-full text-right')
+      .append('<p class="text-[#E0E0E0] font-semibold mb-2">👩🏻‍💻 CREATORS:</p>');
+    askDiv.append(contentDiv);
+
+    // 渲染 问题内容 节点
+    const questionContent = $('<pre>').addClass(
+      'question-content text-[#D4D4D4] bg-[#2D2D2D] p-2 rounded-lg inline-block max-w-full overflow-x-auto'
+    );
+    /* 判断是否 有指令 */
+    if (command) {
+      const span = $('<span>').addClass('ai-command text-[#569CD6] font-bold').html(`/${command}`);
+      questionContent.append(span);
+    }
+    // 追加内容
+    questionContent.append(text);
+    contentDiv.append(questionContent);
+
+    $('#responses').append(parentDiv);
+    // 渲染loading
+    if (workingState === 'asking') {
+      renderLoadingElement(request);
+    }
+  }
+
+  /** 渲染回答 */
+  function renderResponse(response: ChatResponse) {
+    const { uuid } = response;
+    // var el = document.getElementById('res-content-' + response.uuid);
+    // if (el) {
+    //   var converter = new showdown.Converter({
+    //     omitExtraWLInCodeBlocks: true,
+    //     simplifiedAutoLink: true,
+    //     excludeTrailingPunctuationFromURLs: true,
+    //     literalMidWordUnderscores: true,
+    //     simpleLineBreaks: true,
+    //   });
+    //   const html = converter.makeHtml(fixCodeBlocks(response.text));
+    //   el.innerHTML = html;
+
+    //   var preCodeBlocks = document.querySelectorAll('#res-' + uuid + ' pre code');
+    //   if (preCodeBlocks) {
+    //     for (var i = 0; i < preCodeBlocks.length; i++) {
+    //       preCodeBlocks[i].classList.add(
+    //         'theme-atom-one-dark',
+    //         'language-typescript',
+    //         'p-2',
+    //         'my-2',
+    //         'block',
+    //         'overflow-x-auto'
+    //       );
+    //       (function () {
+    //         var button = $('<button>复制代码</button>').addClass(
+    //           'inline-flex items-center gap-x-2 mt-2 rounded-lg bg-[#569CD6] px-3 py-2 text-center text-sm font-medium text-white hover:bg-[#4A85BA] focus:outline-none focus:ring focus:ring-[#569CD6] '
+    //         );
+    //         var codeStr = preCodeBlocks[i].innerText;
+
+    //         button.on('click', () => {
+    //           navigator.clipboard
+    //             .writeText(codeStr)
+    //             .then(() => {
+    //               button.innerText = '代码已复制!';
+    //             })
+    //             .catch((err) => {
+    //               console.error('代码复制失败:', err);
+    //             });
+    //           setTimeout(() => {
+    //             button.innerText = '复制代码';
+    //           }, 1500);
+    //         });
+    //         preCodeBlocks[i].parentNode.insertBefore(button, preCodeBlocks[i]);
+    //       })();
+    //     }
+    //   }
+    //   hljs.highlightAll();
+    // } else {
+    //   var converter = new showdown.Converter({
+    //     omitExtraWLInCodeBlocks: true,
+    //     simplifiedAutoLink: true,
+    //     excludeTrailingPunctuationFromURLs: true,
+    //     literalMidWordUnderscores: true,
+    //     simpleLineBreaks: true,
+    //   });
+    //   const html = converter.makeHtml(fixCodeBlocks(response.text));
+
+    //   const div = document.createElement('div');
+    //   div.className = 'flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md';
+    //   div.id = 'res-' + response.uuid;
+
+    //   const contentDiv = document.createElement('div');
+    //   contentDiv.className = 'bg-[#1E1E1E] p-4 text-left w-full';
+    //   div.appendChild(contentDiv);
+
+    //   const aiLabel = document.createElement('p');
+    //   aiLabel.className = 'text-[#E0E0E0] font-semibold mb-2';
+    //   aiLabel.textContent = `${_USERNAME}:`;
+    //   contentDiv.appendChild(aiLabel);
+
+    //   const responseContent = document.createElement('div');
+    //   responseContent.innerHTML = html;
+    //   responseContent.id = 'res-content-' + uuid;
+    //   responseContent.className =
+    //     'bg-[#2D2D2D] p-3 rounded-xl text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full';
+    //   contentDiv.appendChild(responseContent);
+
+    //   const askEl = document.getElementById('ask-' + uuid);
+    //   askEl.insertAdjacentElement('afterend', div);
+
+    //   var preCodeBlocks = document.querySelectorAll('#res-' + uuid + ' pre code');
+    //   if (preCodeBlocks) {
+    //     for (var i = 0; i < preCodeBlocks.length; i++) {
+    //       preCodeBlocks[i].classList.add(
+    //         'theme-atom-one-dark',
+    //         'language-typescript',
+    //         'p-2',
+    //         'my-2',
+    //         'block',
+    //         'overflow-x-auto'
+    //       );
+    //     }
+    //   }
+    // }
+    const responsesDiv = $(`div[data-id="${uuid}"]`).find('.chat__system-wrapper');
+
+    let updatedResponseDiv: JQuery<HTMLElement> | null = null;
+
+    if (responsesDiv.children().length > 0 && (response.id === null || response?.id === lastResponse?.id)) {
+      // Update the existing response
+      updatedResponseDiv = responsesDiv.children().last() as JQuery<HTMLElement>;
+    } else {
+      // 创建 新的回答节点
+
+      const newDiv = $('<div>').addClass('bg-[#1E1E1E] p-4 text-left w-full');
+
+      responsesDiv.append(newDiv);
+      updatedResponseDiv = newDiv;
+    }
+    renderCreateMessageDiv(updatedResponseDiv, response.text);
+
+    const loadingElements = document.getElementById('loading-' + uuid);
+    if (loadingElements) {
+      const parentElement = loadingElements.parentNode;
+      parentElement.removeChild(loadingElements);
+    }
+
+    hljs.highlightAll();
+    lastResponse = response;
+  }
+
+  /** 渲染回答 -- 消息 */
+  function renderEvent(event: ChatEvent) {
+    renderCreateMessageDiv();
+  }
+
+  /** 渲染回答 -- 图片 */
+  function renderResponse_image() {
+    renderCreateMessageDiv();
+  }
+
+  /** 创建message 并生成 */
+  function renderCreateMessageDiv(div: JQuery<HTMLElement>, text: string) {
+    var converter = new showdown.Converter({
+      omitExtraWLInCodeBlocks: true,
+      simplifiedAutoLink: true,
+      excludeTrailingPunctuationFromURLs: true,
+      literalMidWordUnderscores: true,
+      simpleLineBreaks: true,
+    });
+    const html = converter.makeHtml(fixCodeBlocks(text));
+    console.log('html-----', html);
+    console.log('origin text-----', text);
+    const aiLabel = $(`<p>${_USERNAME}:</p>`).addClass('text-[#E0E0E0] font-semibold mb-2');
+
+    const responseContent = $('<div>')
+      .addClass('text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full')
+      .addClass('response-content')
+      .html(html);
+
+    div.empty().append(aiLabel).append(responseContent);
+
+    const preCodeBlocks = div.find('pre code');
+
+    preCodeBlocks.addClass(
+      `theme-atom-one-dark language-typescript p-2 my-2 block overflow-x-auto border border-[#9da5b433] bg-[#282c34]`
+    );
+
+    var button = $('<button>复制代码</button>').addClass(
+      'inline-flex items-center gap-x-2 mt-2 rounded-lg bg-[#569CD6] px-3 py-2 text-center text-sm font-medium text-white hover:bg-[#4A85BA] focus:outline-none focus:ring focus:ring-[#569CD6] '
+    );
+    button.on('click', function () {
+      console.log($(this).prev());
+      const text = $(this).prev().text();
+
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          button.text('代码已复制!');
+        })
+        .catch((err) => {
+          console.error('代码复制失败:', err);
+        });
+      setTimeout(() => {
+        button.text('复制代码');
+      }, 1500);
+    });
+    preCodeBlocks.parent().append(button);
+  }
+
+  function scrollToBottomOfWindow() {
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: 'smooth',
+    });
+  }
+
+  function clearChatHistory() {
+    $('#responses').html('');
   }
 
   function fixCodeBlocks(response: string) {
@@ -115,32 +354,81 @@ interface ChatEvent {
     return count % 2 === 0 ? response : response.concat('\n```');
   }
 
-  let lastResponse: ChatResponse | null = null;
+  /** 渲染 loading */
+  function renderLoadingElement({ uuid }: Pick<ChatRequest, 'uuid'>) {
+    const div = document.createElement('div');
+    div.id = 'loading-' + uuid;
+    div.className = 'loadingEl flex justify-start py-2';
+    // const response = document.getElementById('responses');
+    div.innerHTML = `
+      <div class="loader loader--style3 ml-4" title="2">
+        <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           width="40px" height="40px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve">
+        <path fill="#569CD6" d="M43.935,25.145c0-10.318-8.364-18.683-18.683-18.683c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615c8.072,0,14.615,6.543,14.615,14.615H43.935z">
+          <animateTransform attributeType="xml"
+            attributeName="transform"
+            type="rotate"
+            from="0 25 25"
+            to="360 25 25"
+            dur="0.6s"
+            repeatCount="indefinite"/>
+          </path>
+        </svg>
+      </div>
+    `;
+    $('#responses').append(div);
 
-  function updateResponse(response: ChatResponse): void {
-    const responsesDiv = $('#responses');
-    let updatedResponseDiv: JQuery<HTMLElement> | null = null;
+    setTimeout(() => {
+      const el = document.getElementById('loading-' + uuid);
+      el.className = 'flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md';
+      el.innerHTML = `<div class="bg-[#1E1E1E] p-4 text-left"><p class="text-[#E0E0E0] font-semibold mb-2">${_USERNAME}:</p><div><p class="text-[#FF6B6B] bg-[#2D2D2D] p-3 rounded-xl inline-block">服务器开小差了</p></div></div>`;
+    }, 50000);
+  }
 
-    if (responsesDiv.children().length > 0 && (response.id === null || response?.id === lastResponse?.id)) {
-      // Update the existing response
-      updatedResponseDiv = responsesDiv.children().last() as JQuery<HTMLElement>;
-    } else {
-      // Create a new div and append it to the "response" div
-      const newDiv = $('<div>').addClass('response m-1 p-1 bg-slate-800');
-      responsesDiv.append(newDiv);
-      updatedResponseDiv = newDiv;
+  function setResponse_image(uuid) {
+    var converter = new showdown.Converter({
+      omitExtraWLInCodeBlocks: true,
+      simplifiedAutoLink: true,
+      excludeTrailingPunctuationFromURLs: true,
+      literalMidWordUnderscores: true,
+      simpleLineBreaks: true,
+    });
+    response = fixCodeBlocks(response);
+    html = converter.makeHtml(response);
+
+    const div = document.createElement('div');
+    div.className = 'flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md';
+    div.id = 'res-' + uuid;
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'bg-[#1E1E1E] p-4 text-left w-full';
+    div.appendChild(contentDiv);
+
+    const aiLabel = document.createElement('p');
+    aiLabel.className = 'text-[#E0E0E0] font-semibold mb-2';
+    aiLabel.textContent = '🤖 CREATORS:';
+    contentDiv.appendChild(aiLabel);
+
+    const responseContent = document.createElement('div');
+    responseContent.innerHTML = html;
+    responseContent.id = 'res-content-' + uuid;
+    responseContent.className =
+      'bg-[#2D2D2D] p-3 rounded-xl text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full';
+    contentDiv.appendChild(responseContent);
+
+    const askEl = document.getElementById('ask-' + uuid);
+    askEl.insertAdjacentElement('afterend', div);
+
+    const loadingElements = document.getElementById('loading-' + uuid);
+    if (loadingElements) {
+      const parentElement = loadingElements.parentNode;
+      parentElement.removeChild(loadingElements);
     }
 
-    updateMessageDiv(updatedResponseDiv, response.text);
-
-    const timestamp = new Date().toLocaleString();
-    updatedResponseDiv.append($('<div>').text(timestamp).addClass('timestamp text-xs text-gray-500'));
-
-    lastResponse = response;
-
-    // Scroll to the bottom of the messages container
-    const messagesContainer = $('#messages-container');
-    messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+    hljs.highlightAll();
+  }
+  function updateConversationId(id: string): void {
+    $('#conversation-id').text(`Conversation ID: ${id || '/'}`);
   }
 
   function updateMessageDiv(div: JQuery<HTMLElement>, text: string) {
@@ -249,11 +537,38 @@ interface ChatEvent {
     return popup;
   }
 
+  /** 清空问题 */
   function clearResponses() {
     $('#responses').empty();
     lastResponse = null;
   }
+  /* 渲染处理结果结果 */
+  function updateResponse(response: ChatResponse): void {
+    const responsesDiv = $('#responses');
+    let updatedResponseDiv: JQuery<HTMLElement> | null = null;
 
+    if (responsesDiv.children().length > 0 && (response.id === null || response?.id === lastResponse?.id)) {
+      // Update the existing response
+      updatedResponseDiv = responsesDiv.children().last() as JQuery<HTMLElement>;
+    } else {
+      // Create a new div and append it to the "response" div
+      const newDiv = $('<div>').addClass('response m-1 p-1 bg-slate-800');
+      responsesDiv.append(newDiv);
+      updatedResponseDiv = newDiv;
+    }
+
+    updateMessageDiv(updatedResponseDiv, response.text);
+
+    const timestamp = new Date().toLocaleString();
+    updatedResponseDiv.append($('<div>').text(timestamp).addClass('timestamp text-xs text-gray-500'));
+
+    lastResponse = response;
+
+    // Scroll to the bottom of the messages container
+    const messagesContainer = $('#messages-container');
+    messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+  }
+  /** 渲染正常请求  */
   function updateRequest(request: ChatRequest) {
     const responsesDiv = $('#responses');
     let updatedRequestDiv = $('<div>').addClass('request m-1 p-1');
@@ -268,23 +583,80 @@ interface ChatEvent {
     const messagesContainer = $('#messages-container');
     messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
   }
-
+  /** 渲染异常请求 */
   function updateEvent(event: ChatEvent) {
-    const responsesDiv = $('#responses');
-    let updatedRequestDiv = $('<div>').addClass('event m-1 p-1 text-gray-500');
-    responsesDiv.append(updatedRequestDiv);
+    // const responsesDiv = $('#responses');
+    // let updatedRequestDiv = $('<div>').addClass('event m-1 p-1 text-gray-500');
+    // responsesDiv.append(updatedRequestDiv);
 
-    updateMessageDiv(updatedRequestDiv, event.text);
+    // updateMessageDiv(updatedRequestDiv, event.text);
 
-    const timestamp = new Date().toLocaleString();
-    updatedRequestDiv.append($('<div>').text(timestamp).addClass('timestamp text-xs text-gray-500'));
+    // const timestamp = new Date().toLocaleString();
+    // updatedRequestDiv.append($('<div>').text(timestamp).addClass('timestamp text-xs text-gray-500'));
 
-    // Scroll to the bottom of the messages container
-    const messagesContainer = $('#messages-container');
-    messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+    // // Scroll to the bottom of the messages container
+    // const messagesContainer = $('#messages-container');
+    // messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+
+    // //
+
+    var converter = new showdown.Converter({
+      omitExtraWLInCodeBlocks: true,
+      simplifiedAutoLink: true,
+      excludeTrailingPunctuationFromURLs: true,
+      literalMidWordUnderscores: true,
+      simpleLineBreaks: true,
+    });
+    const html = converter.makeHtml(fixCodeBlocks(event.text));
+
+    const div = document.createElement('div');
+    div.className = 'flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md';
+    div.id = 'res-' + event.uuid;
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'bg-[#1E1E1E] p-4 text-left w-full';
+    div.appendChild(contentDiv);
+
+    const aiLabel = document.createElement('p');
+    aiLabel.className = 'text-[#E0E0E0] font-semibold mb-2';
+    aiLabel.textContent = `${_USERNAME}:`;
+    contentDiv.appendChild(aiLabel);
+
+    const responseContent = document.createElement('div');
+    responseContent.innerHTML = html;
+    responseContent.id = 'res-content-' + event.uuid;
+    responseContent.className =
+      'bg-[#2D2D2D] p-3 rounded-xl text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full';
+    contentDiv.appendChild(responseContent);
+
+    const askEl = document.getElementById('ask-' + event.uuid);
+    askEl.insertAdjacentElement('afterend', div);
+
+    var preCodeBlocks = document.querySelectorAll('#res-' + event.uuid + ' pre code');
+    if (preCodeBlocks) {
+      for (var i = 0; i < preCodeBlocks.length; i++) {
+        preCodeBlocks[i].classList.add(
+          'theme-atom-one-dark',
+          'language-typescript',
+          'p-2',
+          'my-2',
+          'block',
+          'overflow-x-auto'
+        );
+      }
+    }
+
+    const loadingElements = document.getElementById('loading-' + event.uuid);
+    if (loadingElements) {
+      const parentElement = loadingElements.parentNode;
+      parentElement.removeChild(loadingElements);
+    }
+
+    hljs.highlightAll();
   }
 
-  function setWorkingState(state: string): void {
+  /** 设置 消息状态  */
+  function setWorkingState(state: WorkingState): void {
     workingState = state;
     toggleStopButton(workingState === 'asking');
     $('#working-state').text(workingState === 'asking' ? 'Thinking...' : '');
@@ -298,15 +670,84 @@ interface ChatEvent {
       button.prop('disabled', true).removeClass('bg-red-600 hover:bg-red-700').addClass('cursor-not-allowed');
     }
   }
+})();
+// This script will be run within the webview itself
+// It cannot access the main VS Code APIs directly.
+(function () {
+  const vscode = acquireVsCodeApi();
+  // const config = vscode.workspace.getConfiguration('chatgpt-ai');
+  /** 指令 */
+  const _commands = Object.values(CommandType);
 
-  // Function to send a message to the extension
+  let response = '';
+  let workingState: WorkingState = 'idle';
+  let cachedPrompts: string[] = [];
+
+  // Handle messages sent from the extension to the webview
+  window.addEventListener('message1', (event: MessageEvent) => {
+    const { type, value } = event.data;
+    switch (type) {
+      case 'addResponse':
+        updateResponse(value);
+        break;
+      case 'addRequest':
+        updateRequest(value);
+        break;
+      case 'addEvent':
+        updateEvent(value);
+        break;
+      case 'clearResponses':
+        clearResponses();
+        break;
+      case 'setTask':
+        $('#prompt-input').val(value);
+        break;
+      case 'setWorkingState':
+        setWorkingState(value);
+        break;
+      case 'setConversationId':
+        updateConversationId(value);
+        break;
+      case 'promptsLoaded':
+        cachedPrompts = value;
+        break;
+      case 'setModel':
+        /* 设置gpt model */
+        $('#model-version').html(value);
+        break;
+    }
+  });
+
+  /** 截取指令 */
+  function removePrefix(str: string, prefix: string) {
+    if (str.startsWith(prefix)) {
+      return str.replace(prefix, '');
+    }
+    return str;
+  }
+  /** 发送消息 */
   function sendMessage(value: string) {
+    let requestMessage;
+    if (value.startsWith('/image ')) {
+      /** 使用DALLE-3生成图片, 直接输入描述 (如: /image 长鼻子大象) */
+      requestMessage = { task: value, context: CommandType.image };
+    } else {
+      let _hitCommand = false;
+      _commands.forEach((command: string) => {
+        if (value.startsWith(`/${command} `)) {
+          _hitCommand = true;
+          requestMessage = { task: removePrefix(value, `/${command} `), context: command };
+        }
+      });
+      /* 处理没有 命中指令 */
+      if (!_hitCommand) {
+        requestMessage = { task: value, context: '' };
+      }
+    }
+
     vscode.postMessage({
       type: 'sendPrompt',
-      value: {
-        task: value,
-        context: $('#context-select').val(),
-      },
+      value: requestMessage,
     });
   }
 
@@ -315,18 +756,29 @@ interface ChatEvent {
   $(document).ready(function () {
     // Listen for keyup events on the prompt input element
     const promptInput = $('#prompt-input');
-    promptInput.on('keyup', (e: JQuery.KeyUpEvent) => {
-      // If the key combination that was pressed was Ctrl+Enter
-      if (e.keyCode === 13 && e.ctrlKey) {
-        sendMessage(promptInput.val() as string);
+    function _send() {
+      if (workingState === 'asking') {
+        return;
+      }
+      sendMessage(promptInput.val() as string);
+
+      promptInput.val('');
+
+      setTimeout(() => {
+        workingState = 'idle';
+      }, 2000);
+    }
+    promptInput.on('keydown', (e: JQuery.KeyDownEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        _send();
       }
     });
 
     $('#send-request').on('click', () => {
-      sendMessage(promptInput.val() as string);
+      _send();
     });
 
-    // Listen for click events on the stop button
+    // 中止输出
     $('#stop-button').on('click', () => {
       vscode.postMessage({
         type: 'abort',
@@ -340,29 +792,11 @@ interface ChatEvent {
       });
     });
 
-    $('#prompt-input').autocomplete({
-      position: { my: 'left bottom', at: 'left top' },
-      source: function (request: any, response: Function) {
-        // if cachedPrompts is empty, postMessage 'loadPrompts'
-        if (cachedPrompts.length === 0) {
-          vscode.postMessage({ type: 'loadPrompts' });
-          return;
-        }
-
-        const searchTerm = request.term.toLowerCase(); // convert search term to lowercase
-        const matches = $.grep(cachedPrompts, function (item) {
-          return item.toLowerCase().indexOf(searchTerm) >= 0; // convert item to lowercase before comparing
-        });
-        response(matches);
-      },
-    });
     /*组合 命令 */
     $('#command').on('click', (e) => {
       _filterSelections();
       input.focus();
     });
-    /* 发送 */
-    $('#send').on('click', (e) => {});
 
     vscode.postMessage({ type: 'webviewLoaded' });
 
@@ -408,7 +842,7 @@ interface ChatEvent {
 
     /** 根据value 过滤命令 */
     function _filterSelections(value: string = '') {
-      const filteredCommands = _commands.filter((command) => command.label.startsWith(value));
+      const filteredCommands = COMMANDS_LIST.filter((command) => command.label.startsWith(value));
 
       suggestions.innerHTML = '';
       filteredCommands.forEach((command, index) => {

@@ -2195,10 +2195,12 @@ h6 {
   margin-right: 10px;
   padding: 4px 8px;
 }
-.ask-content pre {
+.chat__user-wrapper pre {
   white-space: break-spaces;
 }
-
+.chat__user-wrapper .question-content {
+  border-top-right-radius: 0;
+}
 .hljs-tag {
   color: #e6c07b;
 }
@@ -2282,7 +2284,7 @@ h6 {
     rgba(255, 138, 79, 0.7) 81.96%,
     rgba(180, 58, 255, 0.7) 91.67%
   );
-  padding: 2px;
+  padding: 1px;
   border-radius: 8px;
   position: relative;
   transition: all 0.3s ease;
@@ -2302,8 +2304,8 @@ h6 {
   opacity: 0.7;
 }
 .chat-input .container {
-  border-radius: 6px;
-  padding: 0 6px;
+  border-radius: 8px;
+  padding: 0 8px;
   position: relative;
   z-index: 1;
 }
