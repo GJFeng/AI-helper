@@ -7,7 +7,7 @@ import { COMMANDS_LIST, CommandType } from '../command';
 import showdown from 'showdown';
 declare const acquireVsCodeApi: () => any;
 
-const _USERNAME = '🤖 CREATORS';
+const _USERNAME = '🤖 Bot AI';
 interface ChatResponse {
   /** open ai 会话流 id */
   id?: string;
@@ -63,7 +63,9 @@ interface ChatEvent {
       }
       case 'addEvent':
         // 更新消息 - 异常
-        updateEvent(value);
+        // updateEvent(value);
+        renderEvent(value);
+
         break;
       case 'addResponse': {
         // 回答 - 显示消息内容
@@ -73,7 +75,7 @@ interface ChatEvent {
         break;
       }
       case 'setResponse_image': {
-        setResponse_image(id);
+        renderResponse_image(value);
         break;
       }
       case 'clearResponse': {
@@ -114,23 +116,34 @@ interface ChatEvent {
     // 提问  - 打开新的消息页面并创建相应的标签
     $('#intro').hide(); // 隐藏id为intro的div
     $('#prompt-input').val('');
-    const tailwind_class = 'flex w-full bg-[#1E1E1E] rounded-xl shadow-md';
+    const tailwind_class = 'flex w-full rounded-xl ';
+
+    // 创建 回答节点
+    const responseDiv = $(`<div>`)
+      .addClass(`${tailwind_class} justify-start chat__system-wrapper`)
+      .append(
+        $('<div>')
+          .addClass('p-4 text-left w-full')
+          .append(`<p class="text-[#E0E0E0] font-semibold mb-2">${_USERNAME}:</p>`)
+          .append(
+            $('<div>')
+              .addClass('text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full')
+              .addClass('chat__system-content')
+          )
+      );
+
+    // 渲染 用户 头像名称
+    const contentDiv = $('<div>')
+      .addClass('p-4 w-full text-right')
+      .append('<p class="text-[#E0E0E0] font-semibold mb-2">👩🏻‍💻 CREATORS:</p>');
 
     // 创建 提问节点
-    const askDiv = $(`<div>`).addClass(`${tailwind_class} justify-end chat__user-wrapper`);
-    // 创建 回答节点
-    const responseDiv = $(`<div>`).addClass(`${tailwind_class} justify-start chat__system-wrapper`);
+    const askDiv = $(`<div>`).addClass(`${tailwind_class} justify-end chat__user-wrapper`).append(contentDiv);
 
     // 渲染 问题 根节点
     const parentDiv = $('<div>').attr('data-id', uuid);
     // 添加 提问与回答节点
     parentDiv.append(askDiv).append(responseDiv);
-
-    // 渲染 用户 头像名称
-    const contentDiv = $('<div>')
-      .addClass('bg-[#1E1E1E] p-4 w-full text-right')
-      .append('<p class="text-[#E0E0E0] font-semibold mb-2">👩🏻‍💻 CREATORS:</p>');
-    askDiv.append(contentDiv);
 
     // 渲染 问题内容 节点
     const questionContent = $('<pre>').addClass(
@@ -249,22 +262,88 @@ interface ChatEvent {
     //     }
     //   }
     // }
-    const responsesDiv = $(`div[data-id="${uuid}"]`).find('.chat__system-wrapper');
+    const updatedResponseDiv = $(`div[data-id="${uuid}"]`).find('.chat__system-content');
 
-    let updatedResponseDiv: JQuery<HTMLElement> | null = null;
+    // let updatedResponseDiv: JQuery<HTMLElement> | null = null;
 
-    if (responsesDiv.children().length > 0 && (response.id === null || response?.id === lastResponse?.id)) {
-      // Update the existing response
-      updatedResponseDiv = responsesDiv.children().last() as JQuery<HTMLElement>;
-    } else {
-      // 创建 新的回答节点
+    // if (responsesDiv.children().length > 0 && (response.id === null || response?.id === lastResponse?.id)) {
+    //   // Update the existing response
+    //   updatedResponseDiv = responsesDiv.children().last() as JQuery<HTMLElement>;
+    // } else {
+    //   // 创建 新的回答节点
 
-      const newDiv = $('<div>').addClass('bg-[#1E1E1E] p-4 text-left w-full');
+    //   // const newDiv = $('<div>').addClass('p-4 text-left w-full');
 
-      responsesDiv.append(newDiv);
-      updatedResponseDiv = newDiv;
-    }
+    //   const newDiv = $('<div>')
+    //     .addClass('text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full')
+    //     .addClass('chat__system-content');
+
+    //   responsesDiv.append(newDiv);
+    //   updatedResponseDiv = newDiv;
+    // }
     renderCreateMessageDiv(updatedResponseDiv, response.text);
+
+    lastResponse = response;
+  }
+
+  /** 渲染回答 -- 消息 */
+  function renderEvent(event: ChatEvent) {
+    const { uuid } = event;
+    const responsesDiv = $(`div[data-id="${uuid}"]`).find('.chat__system-content');
+
+    // const newDiv = $('<div>').addClass('p-4 text-left w-full');
+
+    // responsesDiv.append(newDiv);
+    // let updatedResponseDiv = newDiv;
+
+    renderCreateMessageDiv(responsesDiv, event.text);
+  }
+
+  /** 渲染回答 -- 图片 */
+  function renderResponse_image(response: ChatResponse) {
+    const { uuid } = response;
+
+    var converter = new showdown.Converter({
+      omitExtraWLInCodeBlocks: true,
+      simplifiedAutoLink: true,
+      excludeTrailingPunctuationFromURLs: true,
+      literalMidWordUnderscores: true,
+      simpleLineBreaks: true,
+    });
+    const html = converter.makeHtml(fixCodeBlocks(response.text));
+
+    const div = document.createElement('div');
+    div.className = 'flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md';
+    div.id = 'res-' + uuid;
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'bg-[#1E1E1E] p-4 text-left w-full';
+    div.appendChild(contentDiv);
+
+    const aiLabel = document.createElement('div');
+    aiLabel.className = 'text-[#E0E0E0] font-semibold mb-2 flex items-center';
+
+    const aiAvatar = document.createElement('img');
+    aiAvatar.src = 'https://s.xinc818.com/files/webcim1zv71gs9gbw1f/ai_avatar.jpg';
+    aiAvatar.alt = 'AI Avatar';
+    aiAvatar.className = 'w-8 h-8 mr-2 rounded-full';
+
+    const aiText = document.createElement('span');
+    aiText.textContent = 'Ava:';
+
+    aiLabel.appendChild(aiAvatar);
+    aiLabel.appendChild(aiText);
+    contentDiv.appendChild(aiLabel);
+
+    const responseContent = document.createElement('div');
+    responseContent.innerHTML = html;
+    responseContent.id = 'res-content-' + uuid;
+    responseContent.className =
+      'bg-[#2D2D2D] p-3 rounded-xl text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full';
+    contentDiv.appendChild(responseContent);
+
+    const askEl = document.getElementById('ask-' + uuid);
+    askEl.insertAdjacentElement('afterend', div);
 
     const loadingElements = document.getElementById('loading-' + uuid);
     if (loadingElements) {
@@ -273,17 +352,6 @@ interface ChatEvent {
     }
 
     hljs.highlightAll();
-    lastResponse = response;
-  }
-
-  /** 渲染回答 -- 消息 */
-  function renderEvent(event: ChatEvent) {
-    renderCreateMessageDiv();
-  }
-
-  /** 渲染回答 -- 图片 */
-  function renderResponse_image() {
-    renderCreateMessageDiv();
   }
 
   /** 创建message 并生成 */
@@ -298,14 +366,14 @@ interface ChatEvent {
     const html = converter.makeHtml(fixCodeBlocks(text));
     console.log('html-----', html);
     console.log('origin text-----', text);
-    const aiLabel = $(`<p>${_USERNAME}:</p>`).addClass('text-[#E0E0E0] font-semibold mb-2');
 
-    const responseContent = $('<div>')
-      .addClass('text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full')
-      .addClass('response-content')
-      .html(html);
+    // const responseContent = $('<div>')
+    //   .addClass('text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full')
+    //   .addClass('chat__system-content')
+    //   .html(html);
 
-    div.empty().append(aiLabel).append(responseContent);
+    // div.empty().append(responseContent);
+    div.html(html);
 
     const preCodeBlocks = div.find('pre code');
 
@@ -317,7 +385,6 @@ interface ChatEvent {
       'inline-flex items-center gap-x-2 mt-2 rounded-lg bg-[#569CD6] px-3 py-2 text-center text-sm font-medium text-white hover:bg-[#4A85BA] focus:outline-none focus:ring focus:ring-[#569CD6] '
     );
     button.on('click', function () {
-      console.log($(this).prev());
       const text = $(this).prev().text();
 
       navigator.clipboard
@@ -328,11 +395,20 @@ interface ChatEvent {
         .catch((err) => {
           console.error('代码复制失败:', err);
         });
+
       setTimeout(() => {
         button.text('复制代码');
       }, 1500);
     });
     preCodeBlocks.parent().append(button);
+
+    const loadingEl = div.find('.chat__loadin-wrapper');
+    if (loadingEl) {
+      loadingEl.remove();
+    }
+
+    /* 高亮 */
+    hljs.highlightAll();
   }
 
   function scrollToBottomOfWindow() {
@@ -356,12 +432,8 @@ interface ChatEvent {
 
   /** 渲染 loading */
   function renderLoadingElement({ uuid }: Pick<ChatRequest, 'uuid'>) {
-    const div = document.createElement('div');
-    div.id = 'loading-' + uuid;
-    div.className = 'loadingEl flex justify-start py-2';
-    // const response = document.getElementById('responses');
-    div.innerHTML = `
-      <div class="loader loader--style3 ml-4" title="2">
+    const div = $('<div>').addClass(`chat__loadin-wrapper flex justify-start py-2`)
+      .html(`<div class="loader loader--style3 ml-4" title="2">
         <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
            width="40px" height="40px" viewBox="0 0 50 50" style="enable-background:new 0 0 50 50;" xml:space="preserve">
         <path fill="#569CD6" d="M43.935,25.145c0-10.318-8.364-18.683-18.683-18.683c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615c8.072,0,14.615,6.543,14.615,14.615H43.935z">
@@ -374,285 +446,28 @@ interface ChatEvent {
             repeatCount="indefinite"/>
           </path>
         </svg>
-      </div>
-    `;
-    $('#responses').append(div);
+      </div>`);
+    let parentEl = $(`div[data-id="${uuid}"]`);
+    parentEl.find('.chat__system-content').append(div);
 
     setTimeout(() => {
-      const el = document.getElementById('loading-' + uuid);
-      el.className = 'flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md';
-      el.innerHTML = `<div class="bg-[#1E1E1E] p-4 text-left"><p class="text-[#E0E0E0] font-semibold mb-2">${_USERNAME}:</p><div><p class="text-[#FF6B6B] bg-[#2D2D2D] p-3 rounded-xl inline-block">服务器开小差了</p></div></div>`;
+      parentEl
+        .find('.chat__loadin-wrapper')
+        .attr('class', 'chat__loadin-wrapper flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md')
+        .html(
+          `<div class="bg-[#1E1E1E] p-4 text-left"><p class="text-[#E0E0E0] font-semibold mb-2">${_USERNAME}:</p><div><p class="text-[#FF6B6B] bg-[#2D2D2D] p-3 rounded-xl inline-block">服务器开小差了</p></div></div>`
+        );
     }, 50000);
   }
 
-  function setResponse_image(uuid) {
-    var converter = new showdown.Converter({
-      omitExtraWLInCodeBlocks: true,
-      simplifiedAutoLink: true,
-      excludeTrailingPunctuationFromURLs: true,
-      literalMidWordUnderscores: true,
-      simpleLineBreaks: true,
-    });
-    response = fixCodeBlocks(response);
-    html = converter.makeHtml(response);
-
-    const div = document.createElement('div');
-    div.className = 'flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md';
-    div.id = 'res-' + uuid;
-
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'bg-[#1E1E1E] p-4 text-left w-full';
-    div.appendChild(contentDiv);
-
-    const aiLabel = document.createElement('p');
-    aiLabel.className = 'text-[#E0E0E0] font-semibold mb-2';
-    aiLabel.textContent = '🤖 CREATORS:';
-    contentDiv.appendChild(aiLabel);
-
-    const responseContent = document.createElement('div');
-    responseContent.innerHTML = html;
-    responseContent.id = 'res-content-' + uuid;
-    responseContent.className =
-      'bg-[#2D2D2D] p-3 rounded-xl text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full';
-    contentDiv.appendChild(responseContent);
-
-    const askEl = document.getElementById('ask-' + uuid);
-    askEl.insertAdjacentElement('afterend', div);
-
-    const loadingElements = document.getElementById('loading-' + uuid);
-    if (loadingElements) {
-      const parentElement = loadingElements.parentNode;
-      parentElement.removeChild(loadingElements);
-    }
-
-    hljs.highlightAll();
-  }
   function updateConversationId(id: string): void {
     $('#conversation-id').text(`Conversation ID: ${id || '/'}`);
-  }
-
-  function updateMessageDiv(div: JQuery<HTMLElement>, text: string) {
-    const markedOptions: marked.MarkedOptions = {
-      renderer: new marked.Renderer(),
-      ...{
-        highlight: (code: string, lang: string) => {
-          return hljs.highlightAuto(code).value;
-        },
-        langPrefix: 'hljs language-',
-        sanitize: false,
-        smartypants: false,
-        xhtml: false,
-      },
-      pedantic: false,
-      gfm: true,
-      breaks: false,
-    };
-
-    marked.setOptions(markedOptions);
-
-    var fixedResponseText = fixCodeBlocks(text);
-    const html = marked.parse(fixedResponseText);
-
-    // Create a new div with ID "rendered"
-    const renderedDiv = $('<div>').attr('id', 'rendered');
-    renderedDiv.html(html as string);
-
-    // Create a new div with ID "raw"
-    const rawDiv = $('<div>').attr('id', 'raw');
-
-    // Create a new pre tag for the code snippet and add CSS to wrap the content and enable x-axis overflow scrollbar
-    const preTag = $('<pre>').addClass('hljs').css({ 'overflow-x': 'auto' }).appendTo(rawDiv);
-
-    // Create a new code tag for the code snippet
-    const codeTag = $('<code>').addClass('markdown').text(text).appendTo(preTag);
-
-    // Highlight the code snippet using hljs
-    hljs.highlightBlock(codeTag[0]);
-
-    const toolbarMessageCopy = $('div#response_templates > div#toolbar-message').clone();
-
-    // Add click event listener to markdownBtn
-    toolbarMessageCopy.find('button.markdown-btn').on('click', function () {
-      renderedDiv.toggle();
-      rawDiv.toggle();
-    });
-
-    toolbarMessageCopy.find('button.copy-btn').on('click', function (e) {
-      e.preventDefault();
-      navigator.clipboard.writeText(text).then(() => {
-        console.log('Code copied to clipboard');
-        const popup = createCodeSnippetPopup('Message copied to clipboard');
-        $('body').append(popup);
-        setTimeout(() => {
-          popup.remove();
-        }, 2000);
-      });
-    });
-
-    toolbarMessageCopy.find('button.delete-btn').on('click', function () {
-      toolbarMessageCopy.parent().remove();
-    });
-
-    div.empty().prepend(toolbarMessageCopy).append(renderedDiv).append(rawDiv.hide());
-
-    renderedDiv.find('pre > code').each((i, codeBlock) => {
-      const code = $(codeBlock)?.text();
-
-      const toolbarCopy = $('div#response_templates > div#toolbar-code').clone();
-      toolbarCopy.insertBefore($(codeBlock).parent());
-
-      // Add click event listener to button element
-      toolbarCopy.find('button.insert-btn').on('click', (e: JQuery.ClickEvent) => {
-        e.preventDefault();
-        if (code) {
-          vscode.postMessage({
-            type: 'codeSelected',
-            value: code,
-          });
-        }
-      });
-
-      toolbarCopy.find('button.copy-btn').on('click', (e) => {
-        e.preventDefault();
-        navigator.clipboard.writeText(code).then(() => {
-          console.log('Code copied to clipboard');
-          const popup = createCodeSnippetPopup('Code copied to clipboard');
-          $('body').append(popup);
-          setTimeout(() => {
-            popup.remove();
-          }, 2000);
-        });
-      });
-
-      $(codeBlock).addClass('hljs');
-    });
-  }
-
-  function createCodeSnippetPopup(text: string): JQuery<HTMLElement> {
-    const popup = $('<div>')
-      .text(text)
-      .addClass(
-        'text-xs font-medium leading-5 text-white bg-green-500 p-2 rounded-sm absolute top-0 right-0 mt-2 mr-2'
-      );
-    return popup;
   }
 
   /** 清空问题 */
   function clearResponses() {
     $('#responses').empty();
     lastResponse = null;
-  }
-  /* 渲染处理结果结果 */
-  function updateResponse(response: ChatResponse): void {
-    const responsesDiv = $('#responses');
-    let updatedResponseDiv: JQuery<HTMLElement> | null = null;
-
-    if (responsesDiv.children().length > 0 && (response.id === null || response?.id === lastResponse?.id)) {
-      // Update the existing response
-      updatedResponseDiv = responsesDiv.children().last() as JQuery<HTMLElement>;
-    } else {
-      // Create a new div and append it to the "response" div
-      const newDiv = $('<div>').addClass('response m-1 p-1 bg-slate-800');
-      responsesDiv.append(newDiv);
-      updatedResponseDiv = newDiv;
-    }
-
-    updateMessageDiv(updatedResponseDiv, response.text);
-
-    const timestamp = new Date().toLocaleString();
-    updatedResponseDiv.append($('<div>').text(timestamp).addClass('timestamp text-xs text-gray-500'));
-
-    lastResponse = response;
-
-    // Scroll to the bottom of the messages container
-    const messagesContainer = $('#messages-container');
-    messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
-  }
-  /** 渲染正常请求  */
-  function updateRequest(request: ChatRequest) {
-    const responsesDiv = $('#responses');
-    let updatedRequestDiv = $('<div>').addClass('request m-1 p-1');
-    responsesDiv.append(updatedRequestDiv);
-
-    updateMessageDiv(updatedRequestDiv, request.text);
-
-    const timestamp = new Date().toLocaleString();
-    updatedRequestDiv.append($('<div>').text(timestamp).addClass('timestamp text-xs text-gray-500'));
-
-    // Scroll to the bottom of the messages container
-    const messagesContainer = $('#messages-container');
-    messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
-  }
-  /** 渲染异常请求 */
-  function updateEvent(event: ChatEvent) {
-    // const responsesDiv = $('#responses');
-    // let updatedRequestDiv = $('<div>').addClass('event m-1 p-1 text-gray-500');
-    // responsesDiv.append(updatedRequestDiv);
-
-    // updateMessageDiv(updatedRequestDiv, event.text);
-
-    // const timestamp = new Date().toLocaleString();
-    // updatedRequestDiv.append($('<div>').text(timestamp).addClass('timestamp text-xs text-gray-500'));
-
-    // // Scroll to the bottom of the messages container
-    // const messagesContainer = $('#messages-container');
-    // messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
-
-    // //
-
-    var converter = new showdown.Converter({
-      omitExtraWLInCodeBlocks: true,
-      simplifiedAutoLink: true,
-      excludeTrailingPunctuationFromURLs: true,
-      literalMidWordUnderscores: true,
-      simpleLineBreaks: true,
-    });
-    const html = converter.makeHtml(fixCodeBlocks(event.text));
-
-    const div = document.createElement('div');
-    div.className = 'flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md';
-    div.id = 'res-' + event.uuid;
-
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'bg-[#1E1E1E] p-4 text-left w-full';
-    div.appendChild(contentDiv);
-
-    const aiLabel = document.createElement('p');
-    aiLabel.className = 'text-[#E0E0E0] font-semibold mb-2';
-    aiLabel.textContent = `${_USERNAME}:`;
-    contentDiv.appendChild(aiLabel);
-
-    const responseContent = document.createElement('div');
-    responseContent.innerHTML = html;
-    responseContent.id = 'res-content-' + event.uuid;
-    responseContent.className =
-      'bg-[#2D2D2D] p-3 rounded-xl text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full';
-    contentDiv.appendChild(responseContent);
-
-    const askEl = document.getElementById('ask-' + event.uuid);
-    askEl.insertAdjacentElement('afterend', div);
-
-    var preCodeBlocks = document.querySelectorAll('#res-' + event.uuid + ' pre code');
-    if (preCodeBlocks) {
-      for (var i = 0; i < preCodeBlocks.length; i++) {
-        preCodeBlocks[i].classList.add(
-          'theme-atom-one-dark',
-          'language-typescript',
-          'p-2',
-          'my-2',
-          'block',
-          'overflow-x-auto'
-        );
-      }
-    }
-
-    const loadingElements = document.getElementById('loading-' + event.uuid);
-    if (loadingElements) {
-      const parentElement = loadingElements.parentNode;
-      parentElement.removeChild(loadingElements);
-    }
-
-    hljs.highlightAll();
   }
 
   /** 设置 消息状态  */
@@ -679,44 +494,7 @@ interface ChatEvent {
   /** 指令 */
   const _commands = Object.values(CommandType);
 
-  let response = '';
   let workingState: WorkingState = 'idle';
-  let cachedPrompts: string[] = [];
-
-  // Handle messages sent from the extension to the webview
-  window.addEventListener('message1', (event: MessageEvent) => {
-    const { type, value } = event.data;
-    switch (type) {
-      case 'addResponse':
-        updateResponse(value);
-        break;
-      case 'addRequest':
-        updateRequest(value);
-        break;
-      case 'addEvent':
-        updateEvent(value);
-        break;
-      case 'clearResponses':
-        clearResponses();
-        break;
-      case 'setTask':
-        $('#prompt-input').val(value);
-        break;
-      case 'setWorkingState':
-        setWorkingState(value);
-        break;
-      case 'setConversationId':
-        updateConversationId(value);
-        break;
-      case 'promptsLoaded':
-        cachedPrompts = value;
-        break;
-      case 'setModel':
-        /* 设置gpt model */
-        $('#model-version').html(value);
-        break;
-    }
-  });
 
   /** 截取指令 */
   function removePrefix(str: string, prefix: string) {

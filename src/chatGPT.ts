@@ -166,8 +166,9 @@ class ChatGPT implements vscode.WebviewViewProvider {
     let languageId: string;
 
     console.log('vscode.window.activeTextEditor?', vscode.window.activeTextEditor, task, context);
-    // 提问
 
+    this._setWorkingState('asking');
+    // 提问
     this._view?.webview.postMessage({
       type: 'addRequest',
       value: { text: this._task?.value, command: this._task?.command, uuid: this._task?.uuid },
@@ -259,8 +260,6 @@ class ChatGPT implements vscode.WebviewViewProvider {
     // });
 
     this._currentMessageNumber++;
-
-    this._setWorkingState('asking');
 
     try {
       const currentMessageNumber = this._currentMessageNumber;
