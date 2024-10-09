@@ -10,35 +10,65 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:ai-helper.chatView"
+    "onView:ai-helper.chatView",
+    "onCommand:ai-helper.settings",
+    "onCommand:ai-helper.clearing",
+    "onCommand:ai-helper.openAIHelper"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "ai-helper.openCustomPage",
-        "title": "Open Custom Page"
+        "command": "ai-helper.settings",
+        "title": "清除会话",
+        "icon": "./resources/settings.png"
+      },
+      {
+        "command": "ai-helper.clearing",
+        "title": "清除会话",
+        "icon": "./resources/clear.svg"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "chatGPT",
-          "title": "Package Explorer",
+          "id": "aiHelper",
+          "title": "AI Helper",
           "icon": "./resources/talkGPT-d.svg"
         }
       ]
     },
     "views": {
-      "chatGPT": [
+      "aiHelper": [
         {
           "type": "webview",
           "id": "ai-helper.chatView",
-          "name": "Custom Page",
-          "contextualTitle": "Package Explorer"
+          "name": "AI Helper",
+          "contextualTitle": "AI Helper"
         }
       ]
     },
+    "menus": {
+      "view/title": [
+        {
+          "command": "ai-helper.clearing",
+          "group": "navigation",
+          "when": "view == ai-helper.chatView"
+        },
+        {
+          "command": "ai-helper.settings",
+          "group": "navigation",
+          "when": "view == ai-helper.chatView"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "ai-helper.openAIHelper",
+        "key": "ctrl+i",
+        "mac": "cmd+i"
+      }
+    ],
     "configuration": {
       "title": "ChatGPT AI Helper",
       "properties": {

@@ -14,7 +14,8 @@
 
     <!-- scripts and csses for editing -->
     <script class="editing" src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script class="editing" src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
+    <script class="editing"
+        src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.7.0/build/highlight.min.js"></script>
     <script class="editing" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script class="editing" src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
 
@@ -71,20 +72,26 @@
                             <span class="delete-icon"></span>
                         </button>
                     </div>
-                    <p>The code snippet provided is iterating over the <code>this.contours</code> object using a <code>for</code> loop,
-                        calculating the area of each contour using <code>cv.contourArea</code>, and checking if the ratio of the area to
-                        <code>srcArea</code> is greater than or equal to <code>areaRatioThreshold</code>. If it is, it pushes an object
+                    <p>The code snippet provided is iterating over the <code>this.contours</code> object using a
+                        <code>for</code> loop,
+                        calculating the area of each contour using <code>cv.contourArea</code>, and checking if the
+                        ratio of the area to
+                        <code>srcArea</code> is greater than or equal to <code>areaRatioThreshold</code>. If it is, it
+                        pushes an object
                         containing the contour and its area to the <code>contoursArray</code>.
                     </p>
                     <p>Here's a refactored version of the code:</p>
                     <div class="toolbar flex items-center">
-                        <button title="Edit" class="toolbar-btn toolbar-btn-code edit-btn text-white font-medium transition-colors">
+                        <button title="Edit"
+                            class="toolbar-btn toolbar-btn-code edit-btn text-white font-medium transition-colors">
                             <span class="edit-icon"></span>
                         </button>
-                        <button title="Copy" class="toolbar-btn toolbar-btn-code opy-btn text-white font-medium transition-colors">
+                        <button title="Copy"
+                            class="toolbar-btn toolbar-btn-code opy-btn text-white font-medium transition-colors">
                             <span class="copy-icon"></span>
                         </button>
-                        <button title="Insert" class="toolbar-btn toolbar-btn-code insert-btn text-white font-medium transition-colors">
+                        <button title="Insert"
+                            class="toolbar-btn toolbar-btn-code insert-btn text-white font-medium transition-colors">
                             <span class="insert-icon"></span>
                         </button>
                     </div>
@@ -98,7 +105,7 @@
                                     </code></pre>
                     <div class="timestamp text-xs text-gray-500">3/21/2023, 6:40:26 PM</div>
                 </div>
-            </div>            
+            </div>
             <div id="responses" class="text-sm scroll">
                 <div class="response">
                 </div>
@@ -118,21 +125,22 @@
                 <div id="working-state" class="working-label mr-4 text-stone-300 text-xs">ChatGPT AI</div>
                 <button id="stop-button" class="flex p-1 cursor-not-allowed rounded-md" title="Stop">
                     <span class="stop-icon"></span>
-                </button>     
+                </button>
             </div>
         </div>
         <div class="prompt-container relative">
             <textarea class="h-24 w-full text-white bg-stone-700 p-2 text-sm resize-virtical"
                 placeholder="Ask ChatGPT something...&#10;Press Ctrl-Enter to send." id="prompt-input"></textarea>
             <div class="flex-container flex items-center py-0">
-                <div id="conversation-id" class="w-full text-gray-500 p-0 text-xs text-right" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ">Conversation ID: /</div>
+                <div id="conversation-id" class="w-full text-gray-500 p-0 text-xs text-right"
+                    style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; ">Conversation ID: /</div>
                 <button id="reset-button" class="flex mx-2 p-0 text-white font-semibold text-sm"
                     title="Reset conversation">
                     <span class="reset-icon"></span>
                 </button>
             </div>
-            <button id="send-request" class="flex absolute transform translate-x-1/2 translate-y-1/2" style="bottom: 40px; right:20px;"
-                title="Send">
+            <button id="send-request" class="flex absolute transform translate-x-1/2 translate-y-1/2"
+                style="bottom: 40px; right:20px;" title="Send">
                 <span class="send-icon"></span>
             </button>
         </div>

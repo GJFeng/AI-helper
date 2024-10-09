@@ -1,0 +1,216 @@
+body {
+  --text-highlight: var(--vscode-tab-activeForeground);
+  --text-default: var(--vscode-foreground);
+  --text-gray: var(--vscode-tab-inactiveForeground);
+  --bg-02: var(--vscode-sideBar-background);
+  --bg-03: var(--vscode-quickInput-background);
+  --bg-code: var(--vscode-editor-background);
+  --fill-01: var(--vscode-commandCenter-background);
+  --fill-03: var(--vscode-list-hoverBackground);
+  --line-02: var(--vscode-commandCenter-border);
+  --line-03: var(--vscode-commandCenter-border);
+  --btn-hover: var(--vscode-list-hoverBackground);
+  --bg-chat-message: var(--vscode-list-inactiveSelectionBackground);
+  --font-family: SF Pro Text, Consolas;
+}
+
+body[codeverse-theme='dark'] {
+  --text-multcolor: linear-gradient(
+    95.22deg,
+    #6fa9ff 10.22%,
+    #6aa6ff 44.22%,
+    #ffb37d 64.36%,
+    #ff8a4f 83.79%,
+    #b43aff 106.58%
+  );
+  --input-bg-default: radial-gradient(
+    121.09% 172.92% at 0% 4.17%,
+    rgba(0, 88, 220, 0.7) 0%,
+    rgba(106, 166, 255, 0.7) 45.75%,
+    rgba(255, 255, 255, 0.7) 71.03%,
+    rgba(255, 138, 79, 0.7) 81.96%,
+    rgba(180, 58, 255, 0.7) 91.67%
+  );
+  --input-bg-activate: radial-gradient(
+    121.09% 172.92% at 0% 4.17%,
+    #0058dc 0%,
+    #6aa6ff 45.75%,
+    #ffffff 71.03%,
+    #ff8a4f 81.96%,
+    #b43aff 91.67%
+  );
+  --box-shadow: 0px 2px 16px 0px #0000005c;
+  --login-border: conic-gradient(
+    from 145.74deg at 57.92% 47.19%,
+    #ffb590 0deg,
+    #ffffff 21.57deg,
+    #77adff 177.66deg,
+    #cf75fc 243.34deg,
+    #ffb590 360deg
+  );
+  --login-text: conic-gradient(
+    from 142.61deg at 47.2% 43.75%,
+    #ffb590 0deg,
+    #ffffff 21.57deg,
+    #77adff 177.66deg,
+    #cf75fc 243.34deg,
+    #ffb590 360deg
+  );
+  --guidance-title: linear-gradient(
+    95.22deg,
+    #4891ff 10.22%,
+    #94bfff 44.22%,
+    #ffddc5 64.36%,
+    #ff8a4f 83.79%,
+    #c25eff 90.79%
+  );
+  --guidance-button-bg: linear-gradient(0deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
+    radial-gradient(
+      139.86% 229.94% at -8.7% 50%,
+      rgba(0, 88, 220, 0.2) 0%,
+      rgba(106, 166, 255, 0.2) 45.75%,
+      rgba(255, 255, 255, 0.2) 71.03%,
+      rgba(255, 138, 79, 0.2) 81.96%,
+      rgba(180, 58, 255, 0.2) 91.67%
+    );
+  --guidance-button-hover-bg: linear-gradient(0deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
+    radial-gradient(
+      139.86% 229.94% at -8.7% 50%,
+      rgba(0, 88, 220, 0.4) 0%,
+      rgba(106, 166, 255, 0.4) 45.75%,
+      rgba(255, 255, 255, 0.4) 71.03%,
+      rgba(255, 138, 79, 0.4) 81.96%,
+      rgba(180, 58, 255, 0.4) 91.67%
+    );
+  --guidance-bg: #181818;
+  --banner-bg: linear-gradient(0deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
+    radial-gradient(
+      139.86% 229.94% at -8.7% 50%,
+      rgba(0, 88, 220, 0.2) 0%,
+      rgba(106, 166, 255, 0.2) 45.75%,
+      rgba(255, 255, 255, 0.2) 71.03%,
+      rgba(255, 138, 79, 0.2) 81.96%,
+      rgba(180, 58, 255, 0.2) 91.67%
+    );
+  --banner-bg-image: radial-gradient(
+    121.09% 172.92% at 0% 4.17%,
+    rgba(0, 88, 220, 0.7) 0%,
+    rgba(106, 166, 255, 0.7) 45.75%,
+    rgba(255, 255, 255, 0.7) 71.03%,
+    rgba(255, 138, 79, 0.7) 81.96%,
+    rgba(180, 58, 255, 0.7) 91.67%
+  );
+  --highlight-bg: #ffffff;
+  --blue: #387bff;
+  --blue-hover: #78a5ff;
+  --blue-active: #1759dd;
+  --blue-tr-3: #3579ff5d;
+  --red: #cc4b53;
+  --red-hover: #f2858c;
+  --red-active: #b3363e;
+  --red-tr-1: #cc4b5333;
+  --red-tr-2: #cc4b5347;
+  --input-view-bg: radial-gradient(
+    123.53% 77.66% at 73.45% 22.12%,
+    #5200ff 8.06%,
+    #ff814b 25.29%,
+    #fff 51.83%,
+    #367bff 72%
+  );
+}
+
+body[codeverse-theme='light'] {
+  --text-multcolor: linear-gradient(96.59deg, #4790ff -32.42%, #0066ff 29.93%, #8425ff 59.78%, #ff6518 89.64%);
+  --input-bg-default: linear-gradient(96.59deg, #4790ff -32.42%, #0066ff 29.93%, #8425ff 59.78%, #ff6518 89.64%);
+  --input-bg-activate: linear-gradient(96.59deg, #4790ff -32.42%, #0066ff 29.93%, #8425ff 59.78%, #ff6518 89.64%);
+  --login-border: linear-gradient(96.59deg, #4790ff -32.42%, #0066ff 29.93%, #8425ff 59.78%, #ff6518 89.64%);
+  --login-text: linear-gradient(96.59deg, #4790ff -32.42%, #0066ff 29.93%, #8425ff 59.78%, #ff6518 89.64%);
+  --guidance-title: linear-gradient(95.22deg, #4790ff 10.22%, #0066ff 44.22%, #8425ff 64.36%, #ff6518 83.79%);
+  --box-shadow: 0px 2px 16px 0px #00000029;
+  --guidance-button-hover-bg: linear-gradient(0deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05)),
+    radial-gradient(
+      139.86% 229.94% at -8.7% 50%,
+      rgba(0, 88, 220, 0.4) 0%,
+      rgba(106, 166, 255, 0.4) 45.75%,
+      rgba(255, 255, 255, 0.4) 71.03%,
+      rgba(255, 138, 79, 0.4) 81.96%,
+      rgba(180, 58, 255, 0.4) 91.67%
+    );
+  --guidance-bg: rgba(255, 255, 255, 0.9);
+  --highlight-bg: #ebecf0;
+  --blue: #2f74ff;
+  --blue-hover: #5b92ff;
+  --blue-active: #1759dd;
+  --blue-tr-3: #2f74ff5d;
+  --red: #e92d25;
+  --red-hover: #ec5c56;
+  --red-active: #b11b15;
+  --red-tr-1: #e92d251f;
+  --red-tr-2: #e92d2529;
+  --input-view-bg: radial-gradient(
+    123.53% 77.66% at 73.45% 22.12%,
+    #5200ff 8.06%,
+    #ff814b 25.29%,
+    #fff 51.83%,
+    #367bff 72%
+  );
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  background-color: var(--bg-02);
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #e0e0e0;
+}
+html {
+  padding-bottom: 200px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+ol,
+ul {
+  padding: 0;
+  font-weight: normal;
+}
+
+p {
+  padding-top: 0.4rem;
+  padding-bottom: 0.4rem;
+}
+.m-w-1 {
+  min-width: 0.25rem;
+}
+/* overrides vscodes style reset, displays as if inside web browser */
+ul,
+ol {
+  list-style: disc !important;
+  margin-left: 15px !important;
+}
+ol {
+  list-style: auto !important;
+  margin-left: 1.6em !important;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: bold !important;
+}

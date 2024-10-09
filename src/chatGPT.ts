@@ -24,13 +24,13 @@ type OpenAIAPIInfo = {
   // accessToken?: string,
   // proxyUrl?: string
   apiBaseUrl?: string;
-  model?: string;
+  model: string;
 };
 
 class ChatGPT implements vscode.WebviewViewProvider {
   public static readonly viewType = 'ai-helper.chatView';
 
-  private _chatGPTAPI?: any;
+  private _chatGPTAPI?: OpenAI;
   /** 对话内容 */
   private _task?: {
     /* 对话内容 */
@@ -42,6 +42,10 @@ class ChatGPT implements vscode.WebviewViewProvider {
     /** 会话唯一键， */
     uuid?: number | string;
   };
+
+  // chatgpt 终止器
+  private _abortController = new AbortController();
+
   /** 每次会话信息 */
   private _conversation?: {};
 
@@ -277,8 +281,9 @@ class ChatGPT implements vscode.WebviewViewProvider {
           },
         ],
         stream: true,
-        model: this._openaiAPIInfo?.model,
+        model: this._openaiAPIInfo?.model as string,
       });
+      this._abortController = stream.controller;
       // 打印 stream
       let streamId: string = '0';
       let answer: string = '';
@@ -308,33 +313,33 @@ class ChatGPT implements vscode.WebviewViewProvider {
         // @ts-ignore
         id: streamId,
       };
-      return;
-      const res = await this._chatGPTAPI.sendMessage(searchPrompt, {
-        onProgress: (partialResponse) => {
-          if (
-            partialResponse.id === partialResponse.parentMessageId ||
-            this._currentMessageNumber !== currentMessageNumber
-          ) {
-            return;
-          }
+      // const res = await this._chatGPTAPI.sendMessage(searchPrompt, {
+      //   onProgress: (partialResponse) => {
+      //     if (
+      //       partialResponse.id === partialResponse.parentMessageId ||
+      //       this._currentMessageNumber !== currentMessageNumber
+      //     ) {
+      //       return;
+      //     }
 
-          if (this._view?.visible) {
-            const responseMessage = { type: 'addResponse', value: partialResponse };
-            this._view?.webview.postMessage(responseMessage);
-          }
-        },
-        timeoutMs: (this._settings.timeoutLength || 60) * 1000,
-        abortSignal: this._abortController.signal,
-        ...this._conversation,
-      });
+      //     if (this._view?.visible) {
+      //       const responseMessage = { type: 'addResponse', value: partialResponse };
+      //       this._view?.webview.postMessage(responseMessage);
+      //     }
+      //   },
+      //   timeoutMs: (this._settings.timeoutLength || 60) * 1000,
+      //   abortSignal: this._abortController.signal,
+      //   ...this._conversation,
+      // });
 
-      if (this._settings.keepConversation) {
-        this._conversation = {
-          conversationId: res.conversationId,
-          parentMessageId: res.id,
-        };
-        this._view?.webview?.postMessage({ type: 'setConversationId', value: res.conversationId });
-      }
+      // if (this._settings.keepConversation) {
+      //   this._conversation = {
+      //     conversationId: res.conversationId,
+      //     parentMessageId: res.id,
+      //   };
+      //   this._view?.webview?.postMessage({ type: 'setConversationId', value: res.conversationId });
+      // }
+      this._view?.webview?.postMessage({ type: 'setConversationId', value: streamId });
     } catch (e) {
       console.error(e);
       const errorMessage = `[ERROR] ${e}`;
@@ -349,21 +354,32 @@ class ChatGPT implements vscode.WebviewViewProvider {
   }
 
   /** 终止 */
-  public async abort() {}
+  public async abort() {
+    this._abortController?.abort();
+    this._setWorkingState('idle');
+
+    // this._view?.webview.postMessage({
+    //   type: 'addEvent',
+    //   value: { text: '[EVENT] Aborted by user.', command: this._task?.command, uuid: this._task?.uuid },
+    // });
+
+    // reset the controller
+    this._abortController = new AbortController();
+  }
   public async resetConversation() {
-    // if (this._workingState === 'idle') {
-    //   if (this._conversation) {
-    //     this._conversation = null;
-    //   }
-    //   this._currentMessageNumber = 0;
-    //   this._task = '';
-    //   this._response = '';
-    //   this._view?.webview.postMessage({ type: 'setTask', value: '' });
-    //   this._view?.webview.postMessage({ type: 'clearResponses', value: '' });
-    //   this._view?.webview.postMessage({ type: 'setConversationId', value: '' });
-    // } else {
-    //   console.warn('Conversation is not in idle state. Resetting conversation is not allowed.');
-    // }
+    if (this._workingState === 'idle') {
+      if (this._conversation) {
+        this._conversation = {};
+      }
+      this._currentMessageNumber = 0;
+      this._task = undefined;
+
+      this._view?.webview.postMessage({ type: 'clearing' });
+      // this._view?.webview.postMessage({ type: 'clearResponses', value: '' });
+      // this._view?.webview.postMessage({ type: 'setConversationId', value: '' });
+    } else {
+      console.warn('Conversation is not in idle state. Resetting conversation is not allowed.');
+    }
   }
 
   /** 处理html */
@@ -395,8 +411,11 @@ class ChatGPT implements vscode.WebviewViewProvider {
     const jqueryuicssUri = webview.asWebviewUri(
       (vscode.Uri as any).joinPath(this._extensionUri, 'media', 'styles', 'jquery-ui.css')
     );
+    const resetcssUri = webview.asWebviewUri(
+      (vscode.Uri as any).joinPath(this._extensionUri, 'media', 'styles', 'reset.css')
+    );
     const indexcssUri = webview.asWebviewUri(
-      (vscode.Uri as any).joinPath(this._extensionUri, 'media', 'styles', 'base.css')
+      (vscode.Uri as any).joinPath(this._extensionUri, 'media', 'styles', 'index.css')
     );
     const imgUri = webview.asWebviewUri((vscode.Uri as any).joinPath(this._extensionUri, 'media', 'images'));
 
@@ -404,6 +423,7 @@ class ChatGPT implements vscode.WebviewViewProvider {
       .replace('{{tailwindUri}}', tailwindUri.toString())
       .replace('{{highlightcssUri}}', highlightcssUri.toString())
       .replace('{{jqueryuicssUri}}', jqueryuicssUri.toString())
+      .replace('{{resetcssUri}}', resetcssUri.toString())
       .replace('{{indexcssUri}}', indexcssUri.toString())
       .replace('{{scriptUri}}', scriptUri.toString())
       .replace(/{{imgUri}}/g, imgUri.toString());

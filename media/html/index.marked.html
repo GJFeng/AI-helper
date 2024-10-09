@@ -7,6 +7,7 @@
 
     <link rel="stylesheet" href="{{highlightcssUri}}">
     <link rel="stylesheet" href="{{jqueryuicssUri}}">
+    <link rel="stylesheet" href="{{resetcssUri}}">
     <link rel="stylesheet" href="{{indexcssUri}}">
 
     <script src="{{tailwindUri}}"></script>
@@ -23,8 +24,8 @@
     <link rel="stylesheet" class="editing" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
     <link rel="stylesheet" class="editing" href="../styles/highlight-vscode.min.css">
     <link rel="stylesheet" class="editing" href="../styles/vscode-simulation.css">
+    <link rel="stylesheet" class="editing" href="../styles/reset.css">
     <link rel="stylesheet" class="editing" href="../styles/index.css">
-    <link rel="stylesheet" class="editing" href="../styles/base.css">
 </head>
 
 <body codeverse-theme='dark'>
@@ -32,42 +33,41 @@
         <div class="chat-page">
             <div class="chat-help-page" id="intro">
                 <div>
-                    <div class="user">嗨，有什么可以帮你的</div>
-                    <div class="ask">你的 AI 编程助手，使用快捷键<span class="label-1">⌘</span> <span
-                            class="label-3">U</span>&nbsp;&nbsp;来与我对话吧！</div>
+                    <div class="user">嗨，@Code Maestro! <br />有什么可以帮你的</div>
+                    <div class="ask">我是你的 AI 编程助手，使用快捷键<span class="label-1">⌘</span> <span
+                            class="label-3">I</span>&nbsp;&nbsp;来与我对话吧！</div>
                     <div class="instruction">
                         <div class="label"><img class="icon" src="{{imgUri}}/dark-icon.svg"><span
-                                class="command">智能代码生成器</span></div>
+                                class="command-button">智能代码生成器</span></div>
                         <div class="text">轻松将你的想法转化为高质量代码</div>
                     </div>
                     <div class="instruction">
                         <div class="label"><img class="icon" src="{{imgUri}}/dark-icon.svg"><span
-                                class="command">代码解析专家</span></div>
+                                class="command-button">代码解析专家</span></div>
                         <div class="text">/explain 深入剖析函数功能，助你快速理解代码</div>
                     </div>
                     <div class="instruction">
                         <div class="label"><img class="icon" src="{{imgUri}}/dark-icon.svg"><span
-                                class="command">智能注释助手</span></div>
+                                class="command-button">智能注释助手</span></div>
                         <div class="text">/docstring 一键生成清晰、专业的代码注释</div>
                     </div>
                     <div class="instruction">
                         <div class="label"><img class="icon" src="{{imgUri}}/dark-icon.svg"><span
-                                class="command">生成单测</span></div>
+                                class="command-button">生成单测</span></div>
                         <div class="text">/test 为这段选中的函数生成单测</div>
                     </div>
                     <!-- <div class="type">输入 <span class="label">'/help'</span> 查看更多使用说明</div> -->
                 </div>
             </div>
             <div id="responses"></div>
-            <div>
-                <div class="text-right mb-2">
+
+            <div class="fixed left-0 bottom-0 w-full min-h-100 mx-auto  text-white">
+                <div class="pr-4 text-right mb-2">
                     <span class="text-gray-300">模型：</span>
                     <span class="from-purple-500 to-green-400 rounded-xs px-1 h-auto cursor-help vip-logo">
                         <span class="text-gray-800 text-xs leading-none" id="model-version"></span>
                     </span>
                 </div>
-            </div>
-            <div>
                 <div class="inputView-container">
                     <div class="inputView-color-bg"></div>
                 </div>
@@ -81,7 +81,7 @@
                                 class="text-placeholder"></textarea>
                         </div>
                         <div class="instructions">
-                            <div class="command" id="command">
+                            <div class="command" id="command-button">
                                 <div class="icon"><svg width="13" height="13" viewBox="0 0 12 12"
                                         xmlns="http://www.w3.org/2000/svg">
                                         <path
@@ -90,7 +90,7 @@
                                     </svg></div>
                                 <div class="tips">输入 '/' 选择指令</div>
                             </div>
-                            <div class="send" id="send-request">
+                            <div class="send" id="send-button">
                                 <div class="icon"><svg width="16" height="16" viewBox="0 0 16 16"
                                         xmlns="http://www.w3.org/2000/svg">
                                         <path
@@ -99,11 +99,25 @@
                                     </svg></div>
                                 <div class="tips">发送 ⏎</div>
                             </div>
+                            <div class="stop" id="stop-button" style="display: none;">
+                                <div class="icon">
+                                    <?xml version="1.0" standalone="no"?>
+                                    <!DOCTYPE svg
+                                        PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+                                    <svg t="1728388988284" class="icon" viewBox="0 0 1024 1024" version="1.1"
+                                        xmlns="http://www.w3.org/2000/svg" p-id="10811"
+                                        xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200">
+                                        <path
+                                            d="M512 1024A512 512 0 1 1 512 0a512 512 0 0 1 0 1024z m3.008-92.992a416 416 0 1 0 0-832 416 416 0 0 0 0 832zM320 320h384v384H320V320z"
+                                            fill="#262626" p-id="10812"></path>
+                                    </svg>
+                                </div>
+                                <div class="tips">停止</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <ul id="suggestions" class="suggestions" hidden=""></ul>
-                </ul>
+
             </div>
         </div>
     </div>

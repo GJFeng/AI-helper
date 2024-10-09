@@ -1,5 +1,5 @@
 // @ts-ignore
-import * as marked from 'marked';
+// import * as marked from 'marked';
 import hljs from 'highlight.js';
 import $ from 'jquery';
 import 'jquery-ui/ui/widgets/autocomplete';
@@ -54,7 +54,7 @@ interface ChatEvent {
 
   window.addEventListener('message', (event: MessageEvent) => {
     const { type, value } = event.data;
-    const { uuid, id, text } = value;
+
     switch (type) {
       case 'addRequest': {
         // 提问  - 打开新的消息页面并创建相应的标签
@@ -82,15 +82,10 @@ interface ChatEvent {
         // response = '';
         break;
       }
-      case 'clear': {
-        // response = '';
+      case 'clearing': {
         clearChatHistory();
         $('#intro').show(); // 隐藏id为intro的div
         break;
-      }
-
-      case 'scrollToBottomOfWindow': {
-        scrollToBottomOfWindow();
       }
 
       case 'setWorkingState':
@@ -98,7 +93,7 @@ interface ChatEvent {
         setWorkingState(value);
         break;
       case 'setConversationId':
-        // 切换 窗口 id
+        // 切换 窗口 id （历史记录）
         updateConversationId(value);
         break;
 
@@ -135,7 +130,7 @@ interface ChatEvent {
     // 渲染 用户 头像名称
     const contentDiv = $('<div>')
       .addClass('p-4 w-full text-right')
-      .append('<p class="text-[#E0E0E0] font-semibold mb-2">👩🏻‍💻 CREATORS:</p>');
+      .append('<p class="text-[#E0E0E0] font-semibold mb-2">👩🏻‍💻 Code Maestro:</p>');
 
     // 创建 提问节点
     const askDiv = $(`<div>`).addClass(`${tailwind_class} justify-end chat__user-wrapper`).append(contentDiv);
@@ -163,6 +158,8 @@ interface ChatEvent {
     if (workingState === 'asking') {
       renderLoadingElement(request);
     }
+    // 滚动
+    scrollToBottomOfWindow();
   }
 
   /** 渲染回答 */
@@ -283,6 +280,9 @@ interface ChatEvent {
     // }
     renderCreateMessageDiv(updatedResponseDiv, response.text);
 
+    // 滚动
+    scrollToBottomOfWindow();
+
     lastResponse = response;
   }
 
@@ -297,6 +297,8 @@ interface ChatEvent {
     // let updatedResponseDiv = newDiv;
 
     renderCreateMessageDiv(responsesDiv, event.text);
+    // 滚动
+    scrollToBottomOfWindow();
   }
 
   /** 渲染回答 -- 图片 */
@@ -352,6 +354,9 @@ interface ChatEvent {
     }
 
     hljs.highlightAll();
+
+    // 滚动
+    scrollToBottomOfWindow();
   }
 
   /** 创建message 并生成 */
@@ -364,8 +369,8 @@ interface ChatEvent {
       simpleLineBreaks: true,
     });
     const html = converter.makeHtml(fixCodeBlocks(text));
-    console.log('html-----', html);
-    console.log('origin text-----', text);
+    // console.log('html-----', html);
+    // console.log('origin text-----', text);
 
     // const responseContent = $('<div>')
     //   .addClass('text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full')
@@ -382,7 +387,7 @@ interface ChatEvent {
     );
 
     var button = $('<button>复制代码</button>').addClass(
-      'inline-flex items-center gap-x-2 mt-2 rounded-lg bg-[#569CD6] px-3 py-2 text-center text-sm font-medium text-white hover:bg-[#4A85BA] focus:outline-none focus:ring focus:ring-[#569CD6] '
+      'inline-flex items-center gap-x-2 mt-1 rounded-md bg-[#569CD6] px-3 py-2 text-center text-xs font-medium text-white hover:bg-[#4A85BA] focus:outline-none focus:ring focus:ring-[#569CD6] '
     );
     button.on('click', function () {
       const text = $(this).prev().text();
@@ -411,11 +416,10 @@ interface ChatEvent {
     hljs.highlightAll();
   }
 
+  /** 滚动 */
   function scrollToBottomOfWindow() {
-    window.scrollTo({
-      top: document.body.scrollHeight,
-      behavior: 'smooth',
-    });
+    const messagesContainer = $('#responses');
+    messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
   }
 
   function clearChatHistory() {
@@ -478,11 +482,14 @@ interface ChatEvent {
   }
 
   function toggleStopButton(enabled: boolean): void {
-    const button = $('#stop-button');
     if (enabled) {
-      button.prop('disabled', false).removeClass('cursor-not-allowed').addClass('bg-red-600 hover:bg-red-700');
+      $('#send-button').hide();
+      $('#stop-button').show();
+      // button.prop('disabled', false).removeClass('cursor-not-allowed').addClass('bg-red-600 hover:bg-red-700');
     } else {
-      button.prop('disabled', true).removeClass('bg-red-600 hover:bg-red-700').addClass('cursor-not-allowed');
+      $('#send-button').show();
+      $('#stop-button').hide();
+      // button.prop('disabled', true).removeClass('bg-red-600 hover:bg-red-700').addClass('cursor-not-allowed');
     }
   }
 })();
@@ -538,6 +545,7 @@ interface ChatEvent {
       if (workingState === 'asking') {
         return;
       }
+
       sendMessage(promptInput.val() as string);
 
       promptInput.val('');
@@ -552,7 +560,7 @@ interface ChatEvent {
       }
     });
 
-    $('#send-request').on('click', () => {
+    $('#send-button').on('click', () => {
       _send();
     });
 
@@ -563,15 +571,8 @@ interface ChatEvent {
       });
     });
 
-    // Listen for click events on the reset button and send message resetConversation
-    $('#reset-button').on('click', () => {
-      vscode.postMessage({
-        type: 'resetConversation',
-      });
-    });
-
     /*组合 命令 */
-    $('#command').on('click', (e) => {
+    $('#command-button').on('click', (e) => {
       _filterSelections();
       input.focus();
     });
