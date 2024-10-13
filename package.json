@@ -1,8 +1,9 @@
 {
   "name": "ai-helper",
   "displayName": "ai-helper",
+  "publisher": "GJFeng",
   "description": "",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.93.0"
   },
@@ -110,13 +111,18 @@
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "changeset": "changeset",
+    "publish": "changeset publish",
+    "version": "changeset version"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.9",
     "@types/jquery": "^3.5.16",
     "@types/jqueryui": "^1.12.16",
     "@types/mocha": "^10.0.8",
     "@types/node": "20.x",
+    "@types/showdown": "^2.0.6",
     "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.7.0",
@@ -126,8 +132,7 @@
     "ts-loader": "^9.5.1",
     "typescript": "^5.6.2",
     "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4",
-    "@types/showdown": "^2.0.6"
+    "webpack-cli": "^5.1.4"
   },
   "dependencies": {
     "cheerio": "^1.0.0",
