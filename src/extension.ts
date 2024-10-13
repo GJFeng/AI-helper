@@ -43,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
         // mode: config.get('mode'),
         apiKey: config.get('apiKey'),
         apiBaseUrl: config.get('proxy'),
-        model: config.get('model'),
+        model: config.get('model')!,
         // accessToken: config.get('accessToken'),
         // proxyUrl: config.get('proxyUrl') === "Custom" ? config.get('customProxyUrl') : config.get('proxyUrl')
       });

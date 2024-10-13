@@ -345,11 +345,13 @@ interface ChatEvent {
     contentDiv.appendChild(responseContent);
 
     const askEl = document.getElementById('ask-' + uuid);
+    // @ts-ignore
     askEl.insertAdjacentElement('afterend', div);
 
     const loadingElements = document.getElementById('loading-' + uuid);
     if (loadingElements) {
       const parentElement = loadingElements.parentNode;
+      // @ts-ignore
       parentElement.removeChild(loadingElements);
     }
 
