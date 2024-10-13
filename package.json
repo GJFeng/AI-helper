@@ -1,6 +1,6 @@
 {
-  "name": "ai-helper",
-  "displayName": "ai-helper",
+  "name": "ai-codehelper",
+  "displayName": "ai-codehelper",
   "publisher": "gjfeng",
   "description": "",
   "version": "0.0.1",
@@ -11,21 +11,21 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:ai-helper.chatView",
-    "onCommand:ai-helper.settings",
-    "onCommand:ai-helper.clearing",
-    "onCommand:ai-helper.openAIHelper"
+    "onView:ai-codehelper.chatView",
+    "onCommand:ai-codehelper.settings",
+    "onCommand:ai-codehelper.clearing",
+    "onCommand:ai-codehelper.openAIHelper"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "ai-helper.settings",
+        "command": "ai-codehelper.settings",
         "title": "清除会话",
         "icon": "./resources/settings.png"
       },
       {
-        "command": "ai-helper.clearing",
+        "command": "ai-codehelper.clearing",
         "title": "清除会话",
         "icon": "./resources/clear.svg"
       }
@@ -43,7 +43,7 @@
       "aiHelper": [
         {
           "type": "webview",
-          "id": "ai-helper.chatView",
+          "id": "ai-codehelper.chatView",
           "name": "AI Helper",
           "contextualTitle": "AI Helper"
         }
@@ -52,20 +52,20 @@
     "menus": {
       "view/title": [
         {
-          "command": "ai-helper.clearing",
+          "command": "ai-codehelper.clearing",
           "group": "navigation",
-          "when": "view == ai-helper.chatView"
+          "when": "view == ai-codehelper.chatView"
         },
         {
-          "command": "ai-helper.settings",
+          "command": "ai-codehelper.settings",
           "group": "navigation",
-          "when": "view == ai-helper.chatView"
+          "when": "view == ai-codehelper.chatView"
         }
       ]
     },
     "keybindings": [
       {
-        "command": "ai-helper.openAIHelper",
+        "command": "ai-codehelper.openAIHelper",
         "key": "ctrl+i",
         "mac": "cmd+i"
       }
@@ -73,7 +73,7 @@
     "configuration": {
       "title": "ChatGPT AI Helper",
       "properties": {
-        "ai-helper.model": {
+        "ai-codehelper.model": {
           "order": 3,
           "type": "string",
           "default": "gpt-4o-mini",
@@ -89,12 +89,12 @@
             "gpt-4o-mini"
           ]
         },
-        "ai-helper.apiKey": {
+        "ai-codehelper.apiKey": {
           "markdownDescription": "OpenAI API key from [https://platform.openai.com/account/api-keys](https://platform.openai.com/account/api-keys)",
           "type": "string",
           "order": 1
         },
-        "ai-helper.proxy": {
+        "ai-codehelper.proxy": {
           "markdownDescription": "设置自定义代理服务器，[https://api.openai.com](https://api.openai.com)请确保您的服务器正常可用",
           "type": "string",
           "order": 2

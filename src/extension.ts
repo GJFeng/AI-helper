@@ -3,7 +3,7 @@ import ChatGPT from './chatGPT';
 
 // 激活事件处理程序
 export function activate(context: vscode.ExtensionContext) {
-  const config = vscode.workspace.getConfiguration('ai-helper');
+  const config = vscode.workspace.getConfiguration('ai-codehelper');
 
   const provider = new ChatGPT(context.extensionPath, context.extensionUri);
   /* 初始化 open ai 配置 */
@@ -17,15 +17,15 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.registerWebviewViewProvider(ChatGPT.viewType, provider, {
       webviewOptions: { retainContextWhenHidden: true },
     }),
-    vscode.commands.registerCommand('ai-helper.clearing', () => {
+    vscode.commands.registerCommand('ai-codehelper.clearing', () => {
       /* 清除会话 */
       provider.resetConversation();
     }),
-    vscode.commands.registerCommand('ai-helper.settings', () => {
+    vscode.commands.registerCommand('ai-codehelper.settings', () => {
       /* 打开设置 */
-      vscode.commands.executeCommand('workbench.action.openSettings', 'ai-helper');
+      vscode.commands.executeCommand('workbench.action.openSettings', 'ai-codehelper');
     }),
-    vscode.commands.registerCommand('ai-helper.openAIHelper', () => {
+    vscode.commands.registerCommand('ai-codehelper.openAIHelper', () => {
       // 激活当前插件
       vscode.commands.executeCommand('workbench.view.extension.aiHelper');
     })
@@ -33,11 +33,11 @@ export function activate(context: vscode.ExtensionContext) {
 
   // 更改配置时更改扩展的会话令牌或设置
   vscode.workspace.onDidChangeConfiguration((event: vscode.ConfigurationChangeEvent) => {
-    const config = vscode.workspace.getConfiguration('ai-helper');
+    const config = vscode.workspace.getConfiguration('ai-codehelper');
     if (
-      event.affectsConfiguration('ai-helper.apiKey') ||
-      event.affectsConfiguration('ai-helper.proxy') ||
-      event.affectsConfiguration('ai-helper.model')
+      event.affectsConfiguration('ai-codehelper.apiKey') ||
+      event.affectsConfiguration('ai-codehelper.proxy') ||
+      event.affectsConfiguration('ai-codehelper.model')
     ) {
       provider.setOpenAIAPIInfo({
         // mode: config.get('mode'),
@@ -50,11 +50,11 @@ export function activate(context: vscode.ExtensionContext) {
       // clear conversation
       provider.resetConversation();
     }
-    // else if (event.affectsConfiguration('ai-helper.model')) {
+    // else if (event.affectsConfiguration('ai-codehelper.model')) {
     //   provider.setSettings({ selectedInsideCodeblock: config.get('model') });
-    // } else if (event.affectsConfiguration('ai-helper.apiKey')) {
+    // } else if (event.affectsConfiguration('ai-codehelper.apiKey')) {
     //   provider.setSettings({ codeblockWithLanguageId: config.get('apiKey') });
-    // } else if (event.affectsConfiguration('ai-helper.proxy')) {
+    // } else if (event.affectsConfiguration('ai-codehelper.proxy')) {
     //   provider.setSettings({ keepConversation: config.get('proxy') });
     // }
   });

@@ -28,7 +28,7 @@ type OpenAIAPIInfo = {
 };
 
 class ChatGPT implements vscode.WebviewViewProvider {
-  public static readonly viewType = 'ai-helper.chatView';
+  public static readonly viewType = 'ai-codehelper.chatView';
 
   private _chatGPTAPI?: OpenAI;
   /** 对话内容 */
