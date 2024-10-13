@@ -419,7 +419,8 @@ interface ChatEvent {
   /** 滚动 */
   function scrollToBottomOfWindow() {
     const messagesContainer = $('#responses');
-    messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+    console.log('messagesContainer[0].scrollHeight', messagesContainer[0].scrollHeight);
+    messagesContainer.scrollTop(messagesContainer[0].scrollHeight - 2);
   }
 
   function clearChatHistory() {

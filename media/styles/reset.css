@@ -200,7 +200,7 @@ p {
 ul,
 ol {
   list-style: disc !important;
-  margin-left: 15px !important;
+  margin-left: 1.6em !important;
 }
 ol {
   list-style: auto !important;

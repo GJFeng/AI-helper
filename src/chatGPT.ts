@@ -178,12 +178,7 @@ class ChatGPT implements vscode.WebviewViewProvider {
       value: { text: this._task?.value, command: this._task?.command, uuid: this._task?.uuid },
     });
 
-    if (
-      context &&
-      [CommandType.ask, CommandType.explain, CommandType.docstring, CommandType.improve, CommandType.test].includes(
-        context
-      )
-    ) {
+    if (context && [CommandType.ask, CommandType.explain, CommandType.improve, CommandType.test].includes(context)) {
       const selection = vscode.window.activeTextEditor?.selection;
       const selectedText = selection && vscode.window.activeTextEditor?.document.getText(selection);
       if (!selectedText) {
@@ -272,8 +267,7 @@ class ChatGPT implements vscode.WebviewViewProvider {
         messages: [
           {
             role: 'system',
-            content:
-              "You are a knowledgeable and helpful assistant called ChatGPT, who is specialised to help answer queries about users' code. Answer questions in Chinese",
+            content: this._askPrompt(),
           },
           {
             role: 'user',
@@ -352,7 +346,29 @@ class ChatGPT implements vscode.WebviewViewProvider {
 
     this._setWorkingState('idle');
   }
-
+  /** 设置问题 提示词 */
+  private _askPrompt(): string {
+    const { command } = this._task || {};
+    if (!command) {
+      return 'Answer questions in Chinese';
+    }
+    switch (command) {
+      case CommandType.ask:
+        return '我希望你能充当代码解释者，根据所选择代码段，回答有关用户代码的问题。 [附上程序码]';
+      case CommandType.explain:
+        return '你现在是一个 [程序语言] 专家，请告诉我以下的程序码在做什么。 [附上程序码]';
+      case CommandType.improve:
+        return '你现在是一个 Clean Code 专家，我有以下的程序码，请用更干净简洁的方式改写，让我的同事们可以更容易维护程序码。另外，也解释为什么你要这样重构，让我能把重构的方式的说明加到 Pull Request 当中。 [附上程序码]';
+      case CommandType.test:
+        return '你现在是一个 [程序语言] 专家，我有一段程序码 [附上程序码]，请更加当前代码的语言，请帮我写一个单元测试，请至少提供五个测试案例，同时要包含到极端的状况，让我能够确定这段程序码的输出是正确的。';
+      // case CommandType.image:
+      // return '';
+      // case CommandType.bing:
+      // return ``;
+      default:
+        return '';
+    }
+  }
   /** 终止 */
   public async abort() {
     this._abortController?.abort();

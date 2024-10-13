@@ -3,9 +3,11 @@
   display: flex;
   background-color: var(--bg-02);
   flex-direction: column;
+  overflow: hidden;
+}
+.chat-page #responses {
   overflow: auto;
 }
-
 .chat-history {
   flex: 1;
 }
