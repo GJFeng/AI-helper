@@ -40,11 +40,11 @@ export const COMMANDS_LIST = [
     type: CommandType.test,
     desc: '为您的代码创建单元测试',
   },
-  // {
-  //   label: '/image ',
-  //   type: CommandType.image,
-  //   desc: '使用DALLE-3生成图片, 直接输入描述 (如: /image 长鼻子大象)',
-  // },
+  {
+    label: '/image ',
+    type: CommandType.image,
+    desc: '使用DALLE-3生成图片, 直接输入描述 (如: /image 长鼻子大象)',
+  },
   // {
   //   label: '/bing ',
   //   type: CommandType.bing,
