@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.0.3
+
+### Patch Changes
+
+- feat: 添加指令/image
+
 ## 0.0.2
 
 ### Patch Changes
