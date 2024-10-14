@@ -4,7 +4,7 @@ export enum CommandType {
   /** 解释您所选代码的工作原理 */
   explain = 'explain',
   // /** 为所选代码生成自动化文档字符串 */
-  // docstring = 'docstring',
+  docstring = 'docstring',
   /** 提供改进所选代码的建议 */
   improve = 'improve',
   /** 为您的代码创建单元测试 */
@@ -25,11 +25,11 @@ export const COMMANDS_LIST = [
     type: CommandType.explain,
     desc: '解释您所选代码的工作原理',
   },
-  // {
-  //   label: '/docstring ',
-  //   type: CommandType.docstring,
-  //   desc: '为所选代码生成自动化文档字符串',
-  // },
+  {
+    label: '/docstring ',
+    type: CommandType.docstring,
+    desc: '为所选代码生成自动化文档字符串',
+  },
   {
     label: '/improve ',
     type: CommandType.improve,

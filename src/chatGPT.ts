@@ -176,7 +176,12 @@ class ChatGPT implements vscode.WebviewViewProvider {
       value: { text: this._task?.value, command: this._task?.command, uuid: this._task?.uuid },
     });
 
-    if (context && [CommandType.ask, CommandType.explain, CommandType.improve, CommandType.test].includes(context)) {
+    if (
+      context &&
+      [CommandType.ask, CommandType.explain, CommandType.docstring, CommandType.improve, CommandType.test].includes(
+        context
+      )
+    ) {
       const selection = vscode.window.activeTextEditor?.selection;
       const selectedText = selection && vscode.window.activeTextEditor?.document.getText(selection);
       if (!selectedText) {
@@ -356,6 +361,8 @@ class ChatGPT implements vscode.WebviewViewProvider {
         return '我希望你能充当代码解释者，根据所选择代码段，回答有关用户代码的问题。 [附上程序码]';
       case CommandType.explain:
         return '你现在是一个 [程序语言] 专家，请告诉我以下的程序码在做什么。 [附上程序码]';
+      case CommandType.docstring:
+        return '你现在是一个 [程序语言] 专家,请添加注释并重写代码，用注释解释每一行代码的作用。最后分析复杂度。[附上程序码]';
       case CommandType.improve:
         return '你现在是一个 Clean Code 专家，我有以下的程序码，请用更干净简洁的方式改写，让我的同事们可以更容易维护程序码。另外，也解释为什么你要这样重构，让我能把重构的方式的说明加到 Pull Request 当中。 [附上程序码]';
       case CommandType.test:
