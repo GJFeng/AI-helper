@@ -100,23 +100,21 @@ class ChatGPT implements vscode.WebviewViewProvider {
     }
 
     const {
-      // mode,
       apiKey,
       // accessToken,
       apiBaseUrl,
-      model,
     } = this._openaiAPIInfo;
     this._setModel();
     // if (mode === "ChatGPTAPI" && apiKey) {
-    if (apiKey) {
-      this._chatGPTAPI = new OpenAI({
-        apiKey: apiKey,
-        baseURL: apiBaseUrl,
-      });
-    } else {
-      // Handle the case where apiKey is undefined or falsy
-      console.error('API key is missing or invalid.');
-    }
+    // if (apiKey) {
+    this._chatGPTAPI = new OpenAI({
+      apiKey: apiKey ?? '',
+      baseURL: apiBaseUrl ?? '',
+    });
+    // } else {
+    // Handle the case where apiKey is undefined or falsy
+    // console.error('API key is missing or invalid.');
+    // }
 
     // this._conversation = null;
     // this._currentMessageNumber = 0;
@@ -244,12 +242,12 @@ class ChatGPT implements vscode.WebviewViewProvider {
     this._view?.show?.(true);
 
     if (!this._chatGPTAPI) {
-      const errorMessage =
-        '[ERROR] API key not set or wrong, please go to extension settings to set it (read README.md for more info).';
+      const errorMessage = '[ERROR] [错误]API密钥未设置或错误,请转到扩展设置进行设置(有关详细信息,请阅读README.md).';
       this._view?.webview.postMessage({
         type: 'addEvent',
         value: { text: errorMessage, command: this._task?.command, uuid: this._task?.uuid },
       });
+      this._setWorkingState('idle');
       return;
     }
 
