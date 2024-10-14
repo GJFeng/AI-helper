@@ -460,10 +460,8 @@ interface ChatEvent {
     setTimeout(() => {
       parentEl
         .find('.chat__loadin-wrapper')
-        .attr('class', 'chat__loadin-wrapper flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md')
-        .html(
-          `<div class="bg-[#1E1E1E] p-4 text-left"><p class="text-[#E0E0E0] font-semibold mb-2">${_USERNAME}:</p><div><p class="text-[#FF6B6B] bg-[#2D2D2D] p-3 rounded-xl inline-block">服务器开小差了</p></div></div>`
-        );
+        .attr('class', 'flex justify-start w-full rounded-xl shadow-md')
+        .html(`<div><p class="text-[#FF6B6B] p-3 rounded-xl inline-block">服务器开小差了～</p></div>`);
     }, 50000);
   }
 
@@ -545,11 +543,14 @@ interface ChatEvent {
     // Listen for keyup events on the prompt input element
     const promptInput = $('#prompt-input');
     function _send() {
-      if (workingState === 'asking') {
+      let value = (promptInput.val() as string) || '';
+      if (value.trim() === '') {
         return;
       }
-
-      sendMessage(promptInput.val() as string);
+      if (workingState !== 'idle') {
+        return;
+      }
+      sendMessage(value as string);
 
       promptInput.val('');
 
@@ -585,7 +586,7 @@ interface ChatEvent {
     const input = document.getElementById('prompt-input')!;
     const suggestions = document.getElementById('suggestions')!;
     let selectedIndex = -1;
-
+    /* 输入框 监听 输入 */
     input.addEventListener('input', (e: Event) => {
       const { target } = e;
       const { value } = target as HTMLInputElement;
@@ -596,6 +597,7 @@ interface ChatEvent {
         _filterSelections(value);
       }
     });
+    /** 输入框 键盘 监听 */
     input.addEventListener('keydown', (e: KeyboardEvent) => {
       const { key } = e;
       const totalSuggestions = suggestions.children.length;
@@ -621,7 +623,19 @@ interface ChatEvent {
         e.preventDefault();
       }
     });
-
+    // 监听点击事件
+    $('.instruction').on('click', function () {
+      const command = $(this).attr('data-command');
+      if (command === '') {
+        promptInput.val(`生成一段快排的代码`);
+        _send();
+        return;
+      }
+      if (_commands.includes(command as CommandType)) {
+        promptInput.val(`/${command} `);
+        _send();
+      }
+    });
     /** 根据value 过滤命令 */
     function _filterSelections(value: string = '') {
       const filteredCommands = COMMANDS_LIST.filter((command) => command.label.startsWith(value));

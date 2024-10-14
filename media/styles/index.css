@@ -739,7 +739,8 @@
   color: #ccc;
   border-radius: 4px;
 
-  padding: 4px 8px;
+  padding: 4px 6px;
+  margin-right: 2px;
   border: 1px solid var(--line-03);
 }
 .chat__user-wrapper pre {

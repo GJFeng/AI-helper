@@ -185,6 +185,7 @@ class ChatGPT implements vscode.WebviewViewProvider {
           type: 'addEvent',
           value: { text: errorMessage, command: this._task?.command, uuid: this._task?.uuid },
         });
+        this._setWorkingState('idle');
         return;
       }
       languageId = this._settings.codeblockWithLanguageId
