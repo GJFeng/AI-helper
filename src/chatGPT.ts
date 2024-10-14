@@ -197,6 +197,8 @@ class ChatGPT implements vscode.WebviewViewProvider {
         ? vscode.window.activeTextEditor?.document?.languageId || ''
         : '';
       searchPrompt = `${task}\n${'```'}${languageId}\n${selectedText}\n${'```'}\n`;
+    } else if (context === CommandType.image) {
+      searchPrompt = task;
     } else {
       searchPrompt = task;
     }
@@ -266,46 +268,69 @@ class ChatGPT implements vscode.WebviewViewProvider {
 
     try {
       const currentMessageNumber = this._currentMessageNumber;
-
-      const stream = await this._chatGPTAPI.chat.completions.create({
-        messages: [
-          {
-            role: 'system',
-            content: this._askPrompt(),
-          },
-          {
-            role: 'user',
-            content: searchPrompt,
-          },
-        ],
-        stream: true,
-        model: this._openaiAPIInfo?.model as string,
-      });
-      this._abortController = stream.controller;
-      // 打印 stream
       let streamId: string = '0';
-      let answer: string = '';
-      for await (const chunk of stream) {
-        const { id, choices } = chunk;
-        if (this._currentMessageNumber !== currentMessageNumber) {
-          return;
-        }
 
-        if (this._view?.visible) {
-          answer += choices[0]?.delta?.content || '';
-          const responseMessage = {
-            type: 'addResponse',
-            value: {
-              id: id,
-              uuid: this._task?.uuid,
-              text: answer,
+      if (this._task?.command === CommandType.image) {
+        const imagePrompt = searchPrompt;
+        const imageResponse = await this._chatGPTAPI.images.generate({
+          model: 'dall-e-3',
+          prompt: imagePrompt,
+          n: 1,
+          size: '1024x1024',
+          response_format: 'url',
+        });
+        const imageUrl = imageResponse.data[0].url;
+        console.log(imageResponse);
+        streamId = randomUUID();
+        this._view?.webview.postMessage({
+          type: 'addResponse_image',
+          value: {
+            id: streamId,
+            uuid: this._task?.uuid,
+            text: imageUrl,
+          },
+        });
+      } else {
+        const stream = await this._chatGPTAPI.chat.completions.create({
+          messages: [
+            {
+              role: 'system',
+              content: this._askPrompt(),
             },
-          };
-          this._view?.webview.postMessage(responseMessage);
+            {
+              role: 'user',
+              content: searchPrompt,
+            },
+          ],
+          stream: true,
+          model: this._openaiAPIInfo?.model as string,
+        });
+        this._abortController = stream.controller;
+        // 打印 stream
+        let answer: string = '';
+        for await (const chunk of stream) {
+          const { id, choices } = chunk;
+          if (this._currentMessageNumber !== currentMessageNumber) {
+            return;
+          }
+
+          if (this._view?.visible) {
+            answer += choices[0]?.delta?.content || '';
+            const responseMessage = {
+              type: 'addResponse',
+              value: {
+                id: id,
+                uuid: this._task?.uuid,
+                text: answer,
+              },
+            };
+            this._view?.webview.postMessage(responseMessage);
+          }
+          streamId = id;
+          console.log('response', stream, chunk, chunk.choices[0]?.delta?.content || '');
         }
-        streamId = id;
-        console.log('response', stream, chunk, chunk.choices[0]?.delta?.content || '');
       }
+
       this._conversation = {
         ...this._conversation,
         // @ts-ignore

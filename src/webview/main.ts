@@ -74,7 +74,7 @@ interface ChatEvent {
         renderResponse(value);
         break;
       }
-      case 'setResponse_image': {
+      case 'addResponse_image': {
         renderResponse_image(value);
         break;
       }
@@ -303,59 +303,45 @@ interface ChatEvent {
 
   /** 渲染回答 -- 图片 */
   function renderResponse_image(response: ChatResponse) {
-    const { uuid } = response;
+    const { uuid, text } = response;
 
-    var converter = new showdown.Converter({
-      omitExtraWLInCodeBlocks: true,
-      simplifiedAutoLink: true,
-      excludeTrailingPunctuationFromURLs: true,
-      literalMidWordUnderscores: true,
-      simpleLineBreaks: true,
+    const responsesDiv = $(`div[data-id="${uuid}"]`).find('.chat__system-content');
+
+    const img = $('<img/>').attr('src', text);
+    // console.log('html-----', html);
+    // console.log('origin text-----', text);
+
+    // const responseContent = $('<div>')
+    //   .addClass('text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full')
+    //   .addClass('chat__system-content')
+    //   .html(html);
+
+    // div.empty().append(responseContent);
+    responsesDiv.append(img);
+
+    var button = $('<button>复制</button>').addClass(
+      'inline-flex items-center gap-x-2 mt-1 rounded-md bg-[#569CD6] px-3 py-2 text-center text-xs font-medium text-white hover:bg-[#4A85BA] focus:outline-none focus:ring focus:ring-[#569CD6] '
+    );
+    button.on('click', function () {
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          button.text('已复制!');
+        })
+        .catch((err) => {
+          console.error('复制失败:', err);
+        });
+
+      setTimeout(() => {
+        button.text('复制');
+      }, 1500);
     });
-    const html = converter.makeHtml(fixCodeBlocks(response.text));
+    responsesDiv.append(button);
 
-    const div = document.createElement('div');
-    div.className = 'flex justify-start w-full bg-[#1E1E1E] rounded-xl shadow-md';
-    div.id = 'res-' + uuid;
-
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'bg-[#1E1E1E] p-4 text-left w-full';
-    div.appendChild(contentDiv);
-
-    const aiLabel = document.createElement('div');
-    aiLabel.className = 'text-[#E0E0E0] font-semibold mb-2 flex items-center';
-
-    const aiAvatar = document.createElement('img');
-    aiAvatar.src = 'https://s.xinc818.com/files/webcim1zv71gs9gbw1f/ai_avatar.jpg';
-    aiAvatar.alt = 'AI Avatar';
-    aiAvatar.className = 'w-8 h-8 mr-2 rounded-full';
-
-    const aiText = document.createElement('span');
-    aiText.textContent = 'Ava:';
-
-    aiLabel.appendChild(aiAvatar);
-    aiLabel.appendChild(aiText);
-    contentDiv.appendChild(aiLabel);
-
-    const responseContent = document.createElement('div');
-    responseContent.innerHTML = html;
-    responseContent.id = 'res-content-' + uuid;
-    responseContent.className =
-      'bg-[#2D2D2D] p-3 rounded-xl text-left text-[#D4D4D4] overflow-x-auto inline-block max-w-full';
-    contentDiv.appendChild(responseContent);
-
-    const askEl = document.getElementById('ask-' + uuid);
-    // @ts-ignore
-    askEl.insertAdjacentElement('afterend', div);
-
-    const loadingElements = document.getElementById('loading-' + uuid);
-    if (loadingElements) {
-      const parentElement = loadingElements.parentNode;
-      // @ts-ignore
-      parentElement.removeChild(loadingElements);
+    const loadingEl = responsesDiv.find('.chat__loadin-wrapper');
+    if (loadingEl) {
+      loadingEl.remove();
     }
-
-    hljs.highlightAll();
 
     // 滚动
     scrollToBottomOfWindow();
@@ -516,7 +502,7 @@ interface ChatEvent {
     let requestMessage;
     if (value.startsWith('/image ')) {
       /** 使用DALLE-3生成图片, 直接输入描述 (如: /image 长鼻子大象) */
-      requestMessage = { task: value, context: CommandType.image };
+      requestMessage = { task: removePrefix(value, `/image `), context: CommandType.image };
     } else {
       let _hitCommand = false;
       _commands.forEach((command: string) => {
